@@ -1,0 +1,91 @@
+import express from 'express';
+import cors from 'cors';
+import config from './config/config.js';
+import prisma from './config/database.js';
+import routes from './routes/index.js';
+import { errorHandler, notFound } from './middlewares/errorMiddleware.js';
+
+const app = express();
+
+/**
+ * Middleware Configuration
+ */
+// CORS
+app.use(
+  cors({
+    origin: config.cors.origin,
+    credentials: true,
+  })
+);
+
+// Body Parser
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Request Logger (Development)
+if (config.nodeEnv === 'development') {
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`);
+    next();
+  });
+}
+
+/**
+ * Routes
+ */
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Welcome to SportHub Vietnam API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      products: '/api/products',
+    },
+  });
+});
+
+app.use('/api', routes);
+
+/**
+ * Error Handling
+ */
+app.use(notFound);
+app.use(errorHandler);
+
+/**
+ * Database Connection & Server Start
+ */
+const startServer = async () => {
+  try {
+    // Test database connection
+    await prisma.$connect();
+    console.log('✅ Database connected successfully');
+
+    // Start server
+    app.listen(config.port, () => {
+      console.log(`🚀 Server running on port ${config.port} in ${config.nodeEnv} mode`);
+      console.log(`📍 API URL: http://localhost:${config.port}`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Promise Rejection:', err);
+  process.exit(1);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
+
+// Start the server
+startServer();
+
+export default app;

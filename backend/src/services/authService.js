@@ -103,6 +103,49 @@ class AuthService {
 
     return user;
   }
+
+  /**
+   * Get all users
+   */
+  async getAllUsers() {
+    return await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
+  /**
+   * Get user by ID
+   */
+  async getUserById(id) {
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        phone: true,
+        address: true,
+        balance: true, // Maybe useful for game logic
+      },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    return user;
+  }
 }
 
 export default new AuthService();

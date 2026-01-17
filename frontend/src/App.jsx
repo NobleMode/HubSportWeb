@@ -8,6 +8,8 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AdminPage from './pages/AdminPage';
 import ProductsPage from './pages/ProductsPage';
+import PlayersPage from './pages/PlayersPage';
+import PlayerDetailsPage from './pages/PlayerDetailsPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 // Layout
@@ -46,6 +48,8 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/products" element={<ProductsPage />} />
+          <Route path="/players" element={<PlayersPage />} />
+          <Route path="/players/:id" element={<PlayerDetailsPage />} />
 
           {/* Protected Routes */}
           <Route

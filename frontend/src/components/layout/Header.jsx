@@ -34,6 +34,9 @@ const Header = () => {
             <Link to="/products" className="text-gray-700 hover:text-primary-600">
               Products
             </Link>
+            <Link to="/players" className="text-gray-700 hover:text-primary-600">
+              Players
+            </Link>
 
             {/* Cart */}
             <Link to="/cart" className="relative text-gray-700 hover:text-primary-600">

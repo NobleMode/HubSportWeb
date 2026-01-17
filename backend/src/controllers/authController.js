@@ -77,6 +77,42 @@ class AuthController {
       next(error);
     }
   }
+
+  /**
+   * Get all users
+   * GET /api/auth/users
+   */
+  async getAllUsers(req, res, next) {
+    try {
+      const users = await authService.getAllUsers();
+
+      res.status(200).json({
+        success: true,
+        count: users.length,
+        data: users,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get user by ID
+   * GET /api/auth/users/:id
+   */
+  async getUserById(req, res, next) {
+    try {
+      const { id } = req.params;
+      const user = await authService.getUserById(id);
+
+      res.status(200).json({
+        success: true,
+        data: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new AuthController();

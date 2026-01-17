@@ -25,4 +25,18 @@ router.post('/login', authController.login.bind(authController));
  */
 router.get('/profile', authMiddleware, authController.getProfile.bind(authController));
 
+/**
+ * @route   GET /api/auth/users
+ * @desc    Get all users
+ * @access  Public
+ */
+router.get('/users', authController.getAllUsers.bind(authController));
+
+/**
+ * @route   GET /api/auth/users/:id
+ * @desc    Get user by ID
+ * @access  Public
+ */
+router.get('/users/:id', authController.getUserById.bind(authController));
+
 export default router;

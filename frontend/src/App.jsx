@@ -12,6 +12,7 @@ import ProductDetailsPage from './pages/ProductDetailsPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
+import OrderHistoryPage from './pages/OrderHistoryPage';
 import PlayersPage from './pages/PlayersPage';
 import PlayerDetailsPage from './pages/PlayerDetailsPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -38,6 +39,8 @@ const ProtectedRoute = ({ children, requiredRole }) => {
   return children;
 };
 
+import { ToastProvider } from './context/ToastContext';
+
 /**
  * Main App Component
  * Configures routing with protected routes
@@ -45,8 +48,9 @@ const ProtectedRoute = ({ children, requiredRole }) => {
 function App() {
   return (
     <Router>
-      <MainLayout>
-        <Routes>
+      <ToastProvider>
+        <MainLayout>
+          <Routes>
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -68,11 +72,20 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <OrderHistoryPage />
+              </ProtectedRoute>
+            }
+          />
 
           {/* 404 Not Found */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
-      </MainLayout>
+        </MainLayout>
+      </ToastProvider>
     </Router>
   );
 }

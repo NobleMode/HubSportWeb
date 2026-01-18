@@ -8,6 +8,7 @@ import {
   clearCart,
 } from '../features/cart/cartSlice';
 import { selectCurrentUser } from '../features/auth/authSlice';
+import { useCreateOrderMutation } from '../services/orderApi';
 import Button from '../components/common/Button';
 
 /**
@@ -21,6 +22,7 @@ const CheckoutPage = () => {
   const totalAmount = useSelector(selectTotalAmount);
   const totalDeposit = useSelector(selectTotalDeposit);
   const user = useSelector(selectCurrentUser);
+  const [createOrder, { isLoading: isOrderLoading }] = useCreateOrderMutation();
 
   const [formData, setFormData] = useState({
     fullName: user?.name || '',
@@ -49,17 +51,37 @@ const CheckoutPage = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      // Create mock order logic here if needed, but for now just clear cart and redirect
-      dispatch(clearCart());
-      navigate('/order-success');
-      setIsSubmitting(false);
-    }, 1500);
+    try {
+        const orderData = {
+            items: cartItems.map(item => ({
+                productId: item.id,
+                quantity: item.quantity,
+                price: item.price || item.salePrice || item.rentalPrice, // Fallback logic
+                depositFee: item.depositFee,
+                type: item.type,
+                rentalDays: item.rentalDays
+            })),
+            totalAmount,
+            totalDeposit,
+            paymentMethod: formData.paymentMethod,
+            shippingAddress: `${formData.address}, ${formData.city}`,
+            notes: formData.note ? `${formData.note} | Contact: ${formData.fullName}, ${formData.email}, ${formData.phone}` : `Contact: ${formData.fullName}, ${formData.email}, ${formData.phone}`
+        };
+
+        await createOrder(orderData).unwrap();
+        
+        dispatch(clearCart());
+        navigate('/order-success');
+    } catch (err) {
+        console.error('Failed to place order:', err);
+        alert('Failed to place order. Please try again.');
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   return (

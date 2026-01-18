@@ -1,8 +1,9 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGetProductByIdQuery } from '../services/productApi';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../features/cart/cartSlice';
+import { selectIsAuthenticated } from '../features/auth/authSlice';
 import Button from '../components/common/Button';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
@@ -11,9 +12,11 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
  * Displays detailed information about a single product
  */
 const ProductDetailsPage = () => {
-  const { id } = useParams();
+  const urlParams = useParams();
+  const id = urlParams.id; // accessing id from useParams result
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
   const { data, isLoading, error } = useGetProductByIdQuery(id);
 
   const handleAddToCart = (product) => {
@@ -146,7 +149,13 @@ const ProductDetailsPage = () => {
 
             <div className="mt-auto">
               <Button
-                onClick={() => handleAddToCart(product)}
+                onClick={() => {
+                   if (!isAuthenticated) {
+                       navigate('/login');
+                       return;
+                   }
+                   handleAddToCart(product);
+                }}
                 className="w-full md:w-auto md:min-w-[200px] text-lg py-3"
                 disabled={product.stock <= 0}
               >

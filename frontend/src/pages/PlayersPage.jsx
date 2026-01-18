@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom';
 import { useGetUsersQuery } from '../services/userApi';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { useSelector } from 'react-redux';
+import { selectCurrentUser } from '../features/auth/authSlice';
+import React from 'react';
 
 /**
  * Players Page
@@ -25,7 +28,13 @@ const PlayersPage = () => {
     );
   }
 
-  const users = data?.data || [];
+  const currentUser = useSelector(selectCurrentUser);
+  
+  const users = React.useMemo(() => {
+    const allUsers = data?.data || [];
+    if (!currentUser) return allUsers;
+    return allUsers.filter(user => user.id !== currentUser.id);
+  }, [data, currentUser]);
 
   return (
     <div className="container mx-auto px-4 py-8">

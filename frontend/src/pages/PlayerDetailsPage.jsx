@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { userApi } from '../services/userApi';
 import Button from '../components/common/Button';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { useSelector } from 'react-redux';
+import { selectIsAuthenticated } from '../features/auth/authSlice';
 
 const { useGetUserByIdQuery } = userApi;
 
@@ -14,6 +16,7 @@ const PlayerDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data, isLoading, error } = useGetUserByIdQuery(id);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
 
   const player = data?.data;
 
@@ -80,7 +83,15 @@ const PlayerDetailsPage = () => {
                  </span>
               </div>
               <div className="flex gap-4 justify-center md:justify-start">
-                <Button onClick={() => alert('Feature coming soon!')}>Contact Player</Button>
+                <Button onClick={() => {
+                  if (!isAuthenticated) {
+                    navigate('/login');
+                    return;
+                  }
+                  alert('Feature coming soon!');
+                }}>
+                  Contact Player
+                </Button>
               </div>
             </div>
           </div>

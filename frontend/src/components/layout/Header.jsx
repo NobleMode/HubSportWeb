@@ -63,6 +63,9 @@ const Header = () => {
                 <span className="text-gray-700">
                   Welcome, {user?.name || user?.email}
                 </span>
+                <Link to="/orders" className="text-gray-700 hover:text-primary-600">
+                    My Orders
+                </Link>
                 {user?.role === 'ADMIN' && (
                   <Link
                     to="/admin"

@@ -27,7 +27,7 @@ const OrderSuccessPage = () => {
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button onClick={() => navigate('/products')}>Continue Shopping</Button>
-          <Button onClick={() => navigate('/')} variant="outline">Back to Home</Button>
+          <Button onClick={() => navigate('/orders')} variant="outline">View Order History</Button>
         </div>
       </div>
     </div>

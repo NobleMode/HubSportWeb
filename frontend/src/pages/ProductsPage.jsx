@@ -1,8 +1,9 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useGetProductsQuery } from '../services/productApi';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../features/cart/cartSlice';
+import { selectIsAuthenticated } from '../features/auth/authSlice';
 import Button from '../components/common/Button';
 
 /**
@@ -11,6 +12,8 @@ import Button from '../components/common/Button';
 const ProductsPage = () => {
   const { data, isLoading, error } = useGetProductsQuery();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
 
   const handleAddToCart = (product) => {
     dispatch(addToCart({
@@ -98,7 +101,13 @@ const ProductsPage = () => {
 
             <Button
               onClick={(e) => {
-                e.preventDefault(); // Prevent navigation when clicking the button
+                e.preventDefault(); // Prevent Link navigation
+                
+                if (!isAuthenticated) {
+                    navigate('/login');
+                    return;
+                }
+                
                 handleAddToCart(product);
               }}
               className="w-full mt-auto"

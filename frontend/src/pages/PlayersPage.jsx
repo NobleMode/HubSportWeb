@@ -11,6 +11,13 @@ import React from 'react';
  */
 const PlayersPage = () => {
   const { data, isLoading, error } = useGetUsersQuery();
+  const currentUser = useSelector(selectCurrentUser);
+  
+  const users = React.useMemo(() => {
+    const allUsers = data?.data || [];
+    if (!currentUser) return allUsers;
+    return allUsers.filter(user => user.id !== currentUser.id);
+  }, [data, currentUser]);
 
   if (isLoading) {
     return (
@@ -27,14 +34,6 @@ const PlayersPage = () => {
       </div>
     );
   }
-
-  const currentUser = useSelector(selectCurrentUser);
-  
-  const users = React.useMemo(() => {
-    const allUsers = data?.data || [];
-    if (!currentUser) return allUsers;
-    return allUsers.filter(user => user.id !== currentUser.id);
-  }, [data, currentUser]);
 
   return (
     <div className="container mx-auto px-4 py-8">

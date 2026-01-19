@@ -23,27 +23,14 @@ export const authMiddleware = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, config.jwt.secret);
 
-    // Get user from database
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        name: true,
-        balance: true,
-      },
-    });
+    // Stateless: Attach decoded user info directly
+    // Payload contains: { userId, role, scopes, iat, exp }
+    req.user = {
+      id: decoded.userId,
+      role: decoded.role,
+      scopes: decoded.scopes || [],
+    };
 
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'User not found. Authorization denied.',
-      });
-    }
-
-    // Attach user to request
-    req.user = user;
     next();
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {

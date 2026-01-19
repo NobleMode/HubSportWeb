@@ -5,6 +5,7 @@ import { useLoginMutation } from '../services/authApi';
 import { setCredentials } from '../features/auth/authSlice';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Button from '../components/common/Button';
+import { encryptData } from '../utils/security';
 
 /**
  * Login Page
@@ -33,7 +34,12 @@ const LoginPage = () => {
     setError('');
 
     try {
-      const response = await login(formData).unwrap();
+      const encryptedPassword = encryptData(formData.password);
+      
+      const response = await login({
+        email: formData.email,
+        password: encryptedPassword
+      }).unwrap();
       
       // Save credentials to Redux store
       dispatch(setCredentials({

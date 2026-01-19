@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { selectIsAuthenticated, selectCurrentUser, logout } from '../../features/auth/authSlice';
+import { selectIsAuthenticated, selectCurrentUser, logout as logoutAction } from '../../features/auth/authSlice';
 import { selectItemCount } from '../../features/cart/cartSlice';
+import { useLogoutMutation } from '../../services/authApi';
 
 /**
  * Header Component
@@ -13,6 +14,9 @@ const Header = () => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const user = useSelector(selectCurrentUser);
   const cartItemCount = useSelector(selectItemCount);
+  
+  const [logoutApi] = useLogoutMutation();
+
   /* Dropdown State */
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   const dropdownRef = React.useRef(null);
@@ -31,9 +35,15 @@ const Header = () => {
     };
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setIsDropdownOpen(false);
-    dispatch(logout());
+    try {
+      await logoutApi().unwrap();
+    } catch (err) {
+      console.error('Logout API failed:', err);
+    } finally {
+      dispatch(logoutAction());
+    }
   };
 
   return (

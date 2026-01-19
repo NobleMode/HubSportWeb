@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useGetUsersQuery } from '../services/userApi';
+import { useGetUsersQuery, useGetUsersByRoleQuery } from '../services/userApi';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../features/auth/authSlice';
@@ -10,7 +10,7 @@ import React from 'react';
  * Displays list of all registered users
  */
 const PlayersPage = () => {
-  const { data, isLoading, error } = useGetUsersQuery();
+  const { data, isLoading, error } = useGetUsersByRoleQuery('expert');
   const currentUser = useSelector(selectCurrentUser);
   
   const users = React.useMemo(() => {

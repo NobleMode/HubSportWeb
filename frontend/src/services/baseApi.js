@@ -28,13 +28,14 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
       const release = await mutex.acquire();
       
       try {
-        // Call refresh token endpoint (using fetch to include credentials/cookies)
         const refreshResult = await baseQuery(
             { url: '/auth/refresh-token', method: 'POST' },
             api, 
             extraOptions
         );
 
+
+        console.log("chạy tới đây");
         if (refreshResult.data) {
           // Store the new token
           const { token, user } = refreshResult.data.data;
@@ -55,6 +56,15 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
       await mutex.waitForUnlock();
       result = await baseQuery(args, api, extraOptions);
     }
+  }
+
+  // Double check: If result is still 401 after possible retry, force logout
+  // This handles cases where refresh failed or the retried request also failed
+  if (result.error && result.error.status === 401) {
+      // Avoid infinite loop if the unauthorized request IS the logout/refresh request itself
+      if (args.url !== '/auth/login' && args.url !== '/auth/refresh-token') {
+          api.dispatch(logout());
+      }
   }
 
   return result;

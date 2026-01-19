@@ -52,7 +52,7 @@ const HomePage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-gray-100 rounded-lg p-8 text-center">
+      {/* <section className="bg-gray-100 rounded-lg p-8 text-center">
         <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
         <p className="text-gray-600 mb-6">
           Join SportHub Vietnam today and explore our wide range of products and services
@@ -60,7 +60,7 @@ const HomePage = () => {
         <Link to="/register" className="btn-primary">
           Create an Account
         </Link>
-      </section>
+      </section> */}
     </div>
   );
 };

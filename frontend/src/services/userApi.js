@@ -1,4 +1,4 @@
-import { baseApi } from './baseApi';
+import { baseApi } from "./baseApi";
 
 /**
  * User API
@@ -7,17 +7,19 @@ import { baseApi } from './baseApi';
 export const userApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getUsers: builder.query({
-      query: () => '/auth/users',
-      providesTags: ['User'],
+      query: () => "/users",
+      providesTags: ["User"],
+    }),
+    getUsersByRole: builder.query({
+      query: (role) => `/users/role/${role}`,
+      providesTags: ["User"],
     }),
     getUserById: builder.query({
-      query: (id) => `/auth/users/${id}`,
-      providesTags: (result, error, id) => [{ type: 'User', id }],
+      query: (id) => `/users/${id}`,
+      providesTags: (result, error, id) => [{ type: "User", id }],
     }),
   }),
 });
 
-export const {
-  useGetUsersQuery,
-  useGetUserByIdQuery,
-} = userApi;
+export const { useGetUsersQuery, useGetUsersByRoleQuery, useGetUserByIdQuery } =
+  userApi;

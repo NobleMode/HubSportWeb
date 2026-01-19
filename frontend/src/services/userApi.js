@@ -18,8 +18,29 @@ export const userApi = baseApi.injectEndpoints({
       query: (id) => `/users/${id}`,
       providesTags: (result, error, id) => [{ type: "User", id }],
     }),
+    upgradeToExpert: builder.mutation({
+      query: (data) => ({
+        url: "/users/upgrade-expert",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["User"], // Invalidate User cache to refresh profile/role
+    }),
+    updateExpertProfile: builder.mutation({
+      query: (data) => ({
+        url: "/users/expert-profile",
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["User"],
+    }),
   }),
 });
 
-export const { useGetUsersQuery, useGetUsersByRoleQuery, useGetUserByIdQuery } =
-  userApi;
+export const {
+  useGetUsersQuery,
+  useGetUsersByRoleQuery,
+  useGetUserByIdQuery,
+  useUpgradeToExpertMutation,
+  useUpdateExpertProfileMutation,
+} = userApi;

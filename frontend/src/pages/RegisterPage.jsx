@@ -5,6 +5,7 @@ import { useRegisterMutation } from '../services/authApi';
 import { setCredentials } from '../features/auth/authSlice';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Button from '../components/common/Button';
+import { encryptData } from '../utils/security';
 
 /**
  * Register Page
@@ -41,10 +42,12 @@ const RegisterPage = () => {
     }
 
     try {
+      const encryptedPassword = encryptData(formData.password);
+
       const response = await register({
         name: formData.name,
         email: formData.email,
-        password: formData.password,
+        password: encryptedPassword,
       }).unwrap();
       
       // Save credentials to Redux store

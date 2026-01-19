@@ -1,17 +1,26 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 
 const prisma = new PrismaClient();
+
+// Helper to match Frontend's SHA256 hashing
+const hashInitial = (password) => {
+  return crypto.createHash('sha256').update(password).digest('hex');
+};
 
 async function main() {
   console.log('🌱 Starting database seeding...');
 
   // Create Admin User
-  const hashedPassword = await bcrypt.hash('admin123', 10);
+  // Note: We hash the SHA256 string, not the plaintext, to match Frontend's new logic
+  const hashedPassword = await bcrypt.hash(hashInitial('admin123'), 10);
   
   const admin = await prisma.user.upsert({
     where: { email: 'admin@sporthub.vn' },
-    update: {},
+    update: {
+      password: hashedPassword, // Update password if user exists
+    },
     create: {
       email: 'admin@sporthub.vn',
       password: hashedPassword,
@@ -24,7 +33,7 @@ async function main() {
   console.log('✅ Created admin user:', admin.email);
 
   // Create Sample Customer
-  const customerPassword = await bcrypt.hash('customer123', 10);
+  const customerPassword = await bcrypt.hash(hashInitial('customer123'), 10);
   
   const customer = await prisma.user.upsert({
     where: { email: 'customer@example.com' },

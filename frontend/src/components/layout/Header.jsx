@@ -60,9 +60,9 @@ const Header = () => {
             {/* Auth Links */}
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
-                <span className="text-gray-700">
-                  Welcome, {user?.name || user?.email}
-                </span>
+                <Link to="/profile" className="text-gray-700 hover:text-primary-600 font-medium">
+                  {user?.name || user?.email}
+                </Link>
                 {user?.role === 'ADMIN' && (
                   <Link
                     to="/admin"

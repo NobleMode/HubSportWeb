@@ -7,6 +7,7 @@ const mutex = new Mutex();
 
 const baseQuery = fetchBaseQuery({
   baseUrl,
+  credentials: 'include',
   prepareHeaders: (headers, { getState }) => {
     const token = getState().auth.token;
     if (token) {

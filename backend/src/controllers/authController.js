@@ -87,12 +87,12 @@ class AuthController {
                 success: false,
                 message: 'No refresh token provided',
             });
-        }
+      }
 
         const { accessToken, refreshToken: newRefreshToken, user } = await authService.refreshToken(refreshToken);
 
         // Set New Refresh Token Cookie
-        this.setTokenCookie(res, newRefreshToken);
+      this.setTokenCookie(res, newRefreshToken);
 
         res.status(200).json({
             success: true,
@@ -136,11 +136,12 @@ class AuthController {
    * Helper to set Token Cookie
    */
   setTokenCookie(res, token) {
+      const isProduction = process.env.NODE_ENV === 'production';
       const cookieOptions = {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
+          secure: isProduction, // HTTPS required in Prod
           expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-          sameSite: 'strict', // Protect against CSRF
+          sameSite: isProduction ? 'none' : 'lax', // 'none' allows cross-domain in Prod, 'lax' is better for localhost
       };
       
       res.cookie('refreshToken', token, cookieOptions);

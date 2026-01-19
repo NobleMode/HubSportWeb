@@ -128,8 +128,9 @@ class AuthService {
     expiresAt.setDate(expiresAt.getDate() + 7);
 
     // Transaction: Delete old RT, Create new RT
+    // TEMPORARY FIX: Comment out delete to handle React Strict Mode race condition
     await prisma.$transaction([
-      prisma.refreshToken.delete({ where: { token } }),
+      // prisma.refreshToken.delete({ where: { token } }), 
       prisma.refreshToken.create({
         data: {
           token: newRefreshToken,

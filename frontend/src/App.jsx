@@ -28,36 +28,31 @@ function App() {
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const loading = useSelector(state => state.auth.loading);
   
-  // Refresh token mutation
-  const [refreshToken] = useRefreshTokenMutation();
-  const { data: userProfile, isLoading: isProfileLoading, isSuccess: isProfileSuccess } = useGetProfileQuery(undefined, {
-      skip: !isAuthenticated,
-  });
+  // Check authentication status on mount via Profile query
+  const { data: userProfile, isLoading: isProfileLoading, isSuccess: isProfileSuccess, isError: isProfileError } = useGetProfileQuery();
 
   useEffect(() => {
-    const restoreSession = async () => {
-        try {
-            // Attempt to refresh token (this checks the HttpOnly cookie)
-            const result = await refreshToken().unwrap();
-            const { token, user } = result.data;
-            
-            // If success, set credentials
-            dispatch(setCredentials({ token, user }));
-        } catch (err) {
-            // If failed (no cookie or invalid), just stop loading
-            // User will be unauthenticated
-            dispatch(setLoading(false));
-        } finally {
-             // In successful case, setCredentials sets loading false? 
-             // Actually, setCredentials doesn't set loading false in authSlice currently, 
-             // but isAuthenticated becomes true.
-             // We need to ensure loading is set to false.
-             dispatch(setLoading(false));
-        }
-    };
+    // When profile query finishes (either success or error), stop global loading
+    // Note: If 401, isProfileError will be true. baseApi will try refresh.
+    // If refresh works, isProfileSuccess will eventually be true.
+    // If refresh fails, isProfileError stays true.
+    // We should probably wait for isProfileLoading to be false.
+    if (!isProfileLoading) {
+        dispatch(setLoading(false));
+    }
+  }, [isProfileLoading, dispatch]);
 
-    restoreSession();
-  }, [dispatch, refreshToken]);
+  useEffect(() => {
+    if (userProfile && isProfileSuccess) {
+       // Profile loaded successfully
+    }
+  }, [userProfile, isProfileSuccess]);
+
+  // Handle Loading state based on Profile Query
+  // Note: on first load with no token, this might fail 401 immediately -> trigger refresh -> retry.
+  // We should show loading during this process.
+  // isProfileLoading will be true during the initial fetch.
+
 
   // Update user profile in store when profile query succeeds
   useEffect(() => {

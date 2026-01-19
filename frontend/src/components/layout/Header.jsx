@@ -1,3 +1,4 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectIsAuthenticated, selectCurrentUser, logout } from '../../features/auth/authSlice';
@@ -12,8 +13,26 @@ const Header = () => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const user = useSelector(selectCurrentUser);
   const cartItemCount = useSelector(selectItemCount);
+  /* Dropdown State */
+  const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+  const dropdownRef = React.useRef(null);
+
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleLogout = () => {
+    setIsDropdownOpen(false);
     dispatch(logout());
   };
 
@@ -33,6 +52,9 @@ const Header = () => {
             </Link>
             <Link to="/products" className="text-gray-700 hover:text-primary-600">
               Products
+            </Link>
+            <Link to="/players" className="text-gray-700 hover:text-primary-600">
+              Players
             </Link>
 
             {/* Cart */}
@@ -59,24 +81,59 @@ const Header = () => {
 
             {/* Auth Links */}
             {isAuthenticated ? (
-              <div className="flex items-center space-x-4">
-                <Link to="/profile" className="text-gray-700 hover:text-primary-600 font-medium">
-                  {user?.name || user?.email}
-                </Link>
-                {user?.role === 'ADMIN' && (
-                  <Link
-                    to="/admin"
-                    className="text-gray-700 hover:text-primary-600"
-                  >
-                    Admin
-                  </Link>
-                )}
-                <button
-                  onClick={handleLogout}
-                  className="text-gray-700 hover:text-primary-600"
+              <div className="relative" ref={dropdownRef}>
+                <button 
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 focus:outline-none py-2"
                 >
-                  Logout
+                  <span className="font-medium">Welcome, {user?.name || user?.email}</span>
+                  <svg className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? 'transform rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
+                
+                {/* Dropdown Menu */}
+                {isDropdownOpen && (
+                  <div className="absolute right-0 w-48 bg-white rounded-md shadow-lg py-1 z-50 transform origin-top-right border border-gray-100">
+                     <Link 
+                      to="/players" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      Find Players
+                    </Link>
+                    <Link 
+                      to="/orders" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      My Orders
+                    </Link>
+                    <Link 
+                      to="/profile" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      My Profile
+                    </Link>
+                    {user?.role === 'ADMIN' && (
+                      <Link
+                        to="/admin"
+                        className="block px-4 py-2 text-sm text-purple-600 hover:bg-gray-100 font-medium"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        Admin Dashboard
+                      </Link>
+                    )}
+                    <div className="border-t border-gray-100 my-1"></div>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex items-center space-x-4">

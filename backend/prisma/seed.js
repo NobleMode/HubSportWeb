@@ -92,23 +92,43 @@ async function main() {
   ];
 
   for (const productData of products) {
-    const product = await prisma.product.create({
-      data: productData,
+    // Check if product exists to avoid duplicates (since name is not unique in schema)
+    let product = await prisma.product.findFirst({
+      where: { name: productData.name },
     });
-    console.log('✅ Created product:', product.name);
+
+    if (product) {
+      product = await prisma.product.update({
+        where: { id: product.id },
+        data: productData,
+      });
+      console.log('✅ Updated product:', product.name);
+    } else {
+      product = await prisma.product.create({
+        data: productData,
+      });
+      console.log('✅ Created product:', product.name);
+    }
 
     // Create product items for rental products
     if (product.type === 'RENTAL') {
       for (let i = 1; i <= 3; i++) {
-        await prisma.productItem.create({
-          data: {
-            serialNumber: `${product.name.replace(/\s+/g, '-').toUpperCase()}-${i}`,
+        const serialNumber = `${product.name.replace(/\s+/g, '-').toUpperCase()}-${i}`;
+        
+        await prisma.productItem.upsert({
+          where: { serialNumber },
+          update: {
+            productId: product.id,
+            status: 'AVAILABLE',
+          },
+          create: {
+            serialNumber,
             productId: product.id,
             status: 'AVAILABLE',
           },
         });
       }
-      console.log(`   → Created 3 product items for ${product.name}`);
+      console.log(`   → Ensured 3 product items for ${product.name}`);
     }
   }
 

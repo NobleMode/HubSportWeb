@@ -20,8 +20,18 @@ router.get('/health', (req, res) => {
 /**
  * API Routes
  */
+import productItemRoutes from './productItemRoutes.js';
+
+// ... imports
+
+// ...
+
+/**
+ * API Routes
+ */
 router.use('/auth', authRoutes);
 router.use('/products', productRoutes);
+router.use('/product-items', productItemRoutes);
 router.use('/orders', orderRoutes);
 router.use('/users', userRoutes);
 

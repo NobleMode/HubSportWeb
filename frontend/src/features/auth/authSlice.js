@@ -42,6 +42,12 @@ const authSlice = createSlice({
     updateUser: (state, action) => {
       state.user = { ...state.user, ...action.payload };
     },
+    restoreSession: (state, action) => {
+      state.user = action.payload;
+      state.isAuthenticated = true;
+      state.loading = false;
+      state.error = null;
+    },
   },
 });
 
@@ -52,6 +58,7 @@ export const {
   setError,
   clearError,
   updateUser,
+  restoreSession,
 } = authSlice.actions;
 
 export default authSlice.reducer;

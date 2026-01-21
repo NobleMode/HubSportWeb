@@ -20,6 +20,8 @@ async function main() {
     where: { email: 'admin@sporthub.vn' },
     update: {
       password: hashedPassword, // Update password if user exists
+      name: 'Admin User',
+      role: 'ADMIN',
     },
     create: {
       email: 'admin@sporthub.vn',
@@ -37,7 +39,12 @@ async function main() {
   
   const customer = await prisma.user.upsert({
     where: { email: 'customer@example.com' },
-    update: {},
+    update: {
+      password: customerPassword, // Update password if user exists
+      name: 'John Customer',
+      role: 'CUSTOMER',
+      balance: 1000000,
+    },
     create: {
       email: 'customer@example.com',
       password: customerPassword,

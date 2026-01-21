@@ -25,6 +25,10 @@ export const orderApi = baseApi.injectEndpoints({
       query: () => '/orders/my-orders',
       providesTags: ['Order'],
     }),
+    getAllOrders: builder.query({
+      query: () => '/orders',
+      providesTags: ['Order'],
+    }),
   }),
 });
 
@@ -32,4 +36,5 @@ export const {
   useCreateOrderMutation,
   useGetMyOrdersQuery,
   useCancelOrderMutation,
+  useGetAllOrdersQuery,
 } = orderApi;

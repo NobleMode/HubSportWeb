@@ -3,7 +3,7 @@ import {
   useGetProfileQuery,
   useUpdateProfileMutation,
 } from "../services/authApi";
-import { useUpgradeToExpertMutation } from "../services/userApi";
+import { useUpgradeToExpertMutation, useUpdateExpertProfileMutation } from "../services/userApi";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import Button from "../components/common/Button";
 
@@ -16,6 +16,7 @@ const ProfilePage = () => {
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
   const [upgradeToExpert, { isLoading: isUpgrading }] =
     useUpgradeToExpertMutation();
+  const [updateExpertProfile, { isLoading: isExpertUpdating }] = useUpdateExpertProfileMutation();
 
   const user = userResponse?.data;
 
@@ -34,6 +35,13 @@ const ProfilePage = () => {
     bio: "",
     specialization: "",
     hourlyRate: "",
+    videoUrl: "",
+    imageUrl: "",
+    socialLinks: {
+      facebook: "",
+      instagram: "",
+      linkedin: "",
+    },
   });
 
   const [message, setMessage] = useState("");
@@ -52,6 +60,25 @@ const ProfilePage = () => {
     }
   }, [user]);
 
+  // Pre-fill Expert Data if exists
+  useEffect(() => {
+    if (user?.expertProfile) {
+      const { bio, specialization, hourlyRate, videoUrl, imageUrl, socialLinks } = user.expertProfile;
+      setExpertFormData({
+        bio: bio || "",
+        specialization: specialization || "",
+        hourlyRate: hourlyRate || "",
+        videoUrl: videoUrl || "",
+        imageUrl: imageUrl || "",
+        socialLinks: {
+          facebook: socialLinks?.facebook || "",
+          instagram: socialLinks?.instagram || "",
+          linkedin: socialLinks?.linkedin || "",
+        },
+      });
+    }
+  }, [user]);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -65,6 +92,16 @@ const ProfilePage = () => {
     setExpertFormData({
       ...expertFormData,
       [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSocialChange = (e) => {
+    setExpertFormData({
+      ...expertFormData,
+      socialLinks: {
+        ...expertFormData.socialLinks,
+        [e.target.name]: e.target.value,
+      },
     });
   };
 
@@ -91,13 +128,27 @@ const ProfilePage = () => {
     e.preventDefault();
     setError("");
     try {
-      await upgradeToExpert(expertFormData).unwrap();
+      
+      // Branch based on current role
+      const isEditing = formData.role === "EXPERT";
+      
+      let result;
+      if (isEditing) {
+         result = await updateExpertProfile(expertFormData).unwrap();
+         setMessage("Expert Profile updated successfully.");
+      } else {
+         result = await upgradeToExpert(expertFormData).unwrap();
+         const { user, token } = result.data;
+         dispatch(setCredentials({ user, token }));
+         setMessage("Congratulations! You are now an Expert.");
+      }
+
       setIsUpgradeModalOpen(false);
-      setMessage("Congratulations! You are now an Expert.");
-      refetch(); // Reload to update Role UI
+      refetch(); 
     } catch (err) {
-      setError(err.data?.message || "Failed to upgrade to expert.");
+      setError(err.data?.message || "Failed to save expert profile.");
     }
+
   };
 
   if (isUserLoading) {
@@ -255,6 +306,88 @@ const ProfilePage = () => {
               </form>
             </div>
           </div>
+        
+          {/* Expert Profile View */}
+          {formData.role === "EXPERT" && user?.expertProfile && (
+            <div className="mt-8 border-t pt-8">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-800">Expert Profile</h2>
+                <Button onClick={() => setIsUpgradeModalOpen(true)} variant="outline">
+                  Edit Expert Profile
+                </Button>
+              </div>
+
+               <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {/* Avatar & Key Info */}
+                  <div className="text-center md:text-left">
+                    <img 
+                      src={user.expertProfile.imageUrl || "https://via.placeholder.com/150"} 
+                      alt="Expert Avatar" 
+                      className="w-32 h-32 rounded-full object-cover mx-auto md:mx-0 border-4 border-white shadow-lg mb-4"
+                    />
+                    <h3 className="text-xl font-bold text-gray-900">{formData.name}</h3>
+                    <p className="text-primary-600 font-medium">{user.expertProfile.specialization}</p>
+                    <p className="text-gray-500 text-sm mt-1">
+                      {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(user.expertProfile.hourlyRate)} / hour
+                    </p>
+                    
+                    {/* Social Links */}
+                    <div className="flex gap-3 justify-center md:justify-start mt-4">
+                      {user.expertProfile.socialLinks?.facebook && (
+                        <a href={user.expertProfile.socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                           FB
+                        </a>
+                      )}
+                      {user.expertProfile.socialLinks?.instagram && (
+                        <a href={user.expertProfile.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:text-pink-800">
+                           IG
+                        </a>
+                      )}
+                      {user.expertProfile.socialLinks?.linkedin && (
+                        <a href={user.expertProfile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:text-blue-900">
+                           LI
+                        </a>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Bio & Details */}
+                  <div className="md:col-span-2 space-y-6">
+                    <div>
+                      <h4 className="font-semibold text-gray-700 mb-2">About Me</h4>
+                      <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+                        {user.expertProfile.bio || "No bio added yet."}
+                      </p>
+                    </div>
+
+                    {user.expertProfile.videoUrl && (
+                      <div>
+                        <h4 className="font-semibold text-gray-700 mb-2">Introduction Video</h4>
+                        <div className="aspect-w-16 aspect-h-9 bg-gray-200 rounded-lg overflow-hidden">
+                           {/* Simple link or iframe attempt */}
+                           {user.expertProfile.videoUrl.includes('youtube') || user.expertProfile.videoUrl.includes('youtu.be') ? (
+                             <iframe 
+                               src={user.expertProfile.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')} 
+                               title="Expert Video"
+                               className="w-full h-full min-h-[300px]"
+                               frameBorder="0"
+                               allowFullScreen
+                             ></iframe>
+                           ) : (
+                             <a href={user.expertProfile.videoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+                               Watch Video
+                             </a>
+                           )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
 
@@ -288,11 +421,12 @@ const ProfilePage = () => {
                         className="text-lg leading-6 font-medium text-gray-900"
                         id="modal-title"
                       >
-                        Register as Expert
+                        {formData.role === "EXPERT" ? "Update Expert Profile" : "Register as Expert"}
                       </h3>
                       <div className="mt-2 text-sm text-gray-500 mb-4">
-                        Please provide your details to apply for an expert
-                        account.
+                        {formData.role === "EXPERT" 
+                          ? "Update your expert profile details below." 
+                          : "Please provide your details to apply for an expert account."}
                       </div>
 
                       <div className="space-y-4">
@@ -338,6 +472,63 @@ const ProfilePage = () => {
                             placeholder="Tell us about your experience..."
                           ></textarea>
                         </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Profile Image URL (Avatar)
+                          </label>
+                          <input
+                            type="text"
+                            name="imageUrl"
+                            value={expertFormData.imageUrl}
+                            onChange={handleExpertChange}
+                            className="input-field w-full"
+                            placeholder="https://example.com/avatar.jpg"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Introduction Video URL
+                          </label>
+                          <input
+                            type="text"
+                            name="videoUrl"
+                            value={expertFormData.videoUrl}
+                            onChange={handleExpertChange}
+                            className="input-field w-full"
+                            placeholder="https://youtube.com/..."
+                          />
+                        </div>
+                         <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Social Links
+                          </label>
+                          <div className="space-y-2">
+                             <input
+                              type="text"
+                              name="facebook"
+                              value={expertFormData.socialLinks?.facebook || ""}
+                              onChange={handleSocialChange}
+                              className="input-field w-full"
+                              placeholder="Facebook Profile URL"
+                            />
+                             <input
+                              type="text"
+                              name="instagram"
+                              value={expertFormData.socialLinks?.instagram || ""}
+                              onChange={handleSocialChange}
+                              className="input-field w-full"
+                              placeholder="Instagram Profile URL"
+                            />
+                             <input
+                              type="text"
+                              name="linkedin"
+                              value={expertFormData.socialLinks?.linkedin || ""}
+                              onChange={handleSocialChange}
+                              className="input-field w-full"
+                              placeholder="LinkedIn Profile URL"
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -345,13 +536,13 @@ const ProfilePage = () => {
                 <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                   <Button
                     type="submit"
-                    disabled={isUpgrading}
+                    disabled={isUpgrading || isExpertUpdating}
                     className="w-full sm:w-auto sm:ml-3"
                   >
-                    {isUpgrading ? (
+                    {(isUpgrading || isExpertUpdating) ? (
                       <LoadingSpinner size="sm" />
                     ) : (
-                      "Register Now"
+                      formData.role === "EXPERT" ? "Save Changes" : "Register Now"
                     )}
                   </Button>
                   <button

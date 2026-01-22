@@ -21,7 +21,7 @@ class UserService {
   }
 
   async upgradeToExpert(userId, expertData) {
-    const { bio, specialization, hourlyRate } = expertData;
+    const { bio, specialization, hourlyRate, videoUrl, socialLinks, imageUrl } = expertData;
 
     return prisma.$transaction(async (tx) => {
       // 1. Update User Role
@@ -37,6 +37,9 @@ class UserService {
           bio,
           specialization,
           hourlyRate: parseFloat(hourlyRate),
+          videoUrl,
+          socialLinks,
+          imageUrl, // Assuming 'avatar' maps to this
         },
       });
 

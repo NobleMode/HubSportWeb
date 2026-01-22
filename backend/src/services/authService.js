@@ -222,6 +222,7 @@ class AuthService {
         balance: true,
         createdAt: true,
         updatedAt: true,
+        expertProfile: true, // Include Expert Profile data
       },
     });
 

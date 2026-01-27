@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { selectIsAuthenticated, selectCurrentUser, setCredentials, setLoading } from './features/auth/authSlice';
+import { selectIsAuthenticated, selectCurrentUser, setCredentials, setLoading, restoreSession } from './features/auth/authSlice';
 import { useGetProfileQuery, useRefreshTokenMutation } from './services/authApi';
 
 // Pages
@@ -17,6 +17,7 @@ import CheckoutPage from './pages/CheckoutPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import PlayersPage from './pages/PlayersPage';
 import PlayerDetailsPage from './pages/PlayerDetailsPage';
+import OrderHistoryPage from './pages/OrderHistoryPage';
 
 import NotFoundPage from './pages/NotFoundPage';
 
@@ -53,15 +54,10 @@ function App() {
 
   // Update user profile in store when profile query succeeds
   useEffect(() => {
-    if (isProfileSuccess && userProfile) {
-        // We already have token in store, just update user info
-        // But setCredentials expects {user, token}. 
-        // We can create a dedicated 'updateUser' action or just reuse setCredentials if we grab token from store.
-        // Or simpler: The initial refreshToken call already returns user. 
-        // This query might be redundant on initial load, but good for keeping data fresh.
-        // Let's keep it simple for now. 
+    if (isProfileSuccess && userProfile && userProfile.data) {
+        dispatch(restoreSession(userProfile.data));
     }
-  }, [isProfileSuccess, userProfile]);
+  }, [isProfileSuccess, userProfile, dispatch]);
 
 
   if (loading) {
@@ -105,6 +101,14 @@ function App() {
             element={
               <RoleGuard>
                 <ProfilePage />
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <RoleGuard>
+                <OrderHistoryPage />
               </RoleGuard>
             }
           />

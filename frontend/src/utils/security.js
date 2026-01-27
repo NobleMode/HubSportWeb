@@ -8,5 +8,8 @@ export const encryptData = (data) => {
     console.warn('Encryption key is missing!');
     return data;
   }
-  return CryptoJS.AES.encrypt(data, KEY).toString();
+  // Hash with SHA256 first
+  const hashedData = CryptoJS.SHA256(data).toString(CryptoJS.enc.Hex);
+  // Then Encrypt with AES
+  return CryptoJS.AES.encrypt(hashedData, KEY).toString();
 };

@@ -96,7 +96,7 @@ class AuthController {
 
         res.status(200).json({
             success: true,
-            data: { token: accessToken },
+            data: { token: accessToken, user },
         });
     } catch (error) {
          // Clear cookie if refresh fails

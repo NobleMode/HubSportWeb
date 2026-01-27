@@ -53,6 +53,31 @@ class OrderController {
   }
 
   /**
+   * Get all orders (Admin)
+   * GET /api/orders
+   */
+  async getAllOrders(req, res, next) {
+    try {
+      // Check if user is admin (Assuming middleware checks this, or we check here)
+      if (req.user.role !== 'ADMIN') {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Admin only.',
+        });
+      }
+
+      const orders = await orderService.getAllOrders();
+
+      res.status(200).json({
+        success: true,
+        data: orders,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Cancel an order
    * PATCH /api/orders/:id/cancel
    */

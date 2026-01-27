@@ -64,6 +64,29 @@ class OrderService {
     });
   }
 
+  /**
+   * Get all orders (Admin)
+   */
+  async getAllOrders() {
+    return await prisma.order.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          }
+        },
+        orderItems: {
+          include: {
+            product: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async cancelOrder(orderId, userId) {
     // 1. Check if order exists and belongs to user
     const order = await prisma.order.findUnique({

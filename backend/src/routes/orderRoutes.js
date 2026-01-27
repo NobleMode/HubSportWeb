@@ -15,6 +15,13 @@ router.use(authMiddleware);
 router.post('/', orderController.createOrder.bind(orderController));
 
 /**
+ * @route   GET /api/orders
+ * @desc    Get all orders (Admin)
+ * @access  Private (Admin)
+ */
+router.get('/', orderController.getAllOrders.bind(orderController));
+
+/**
  * @route   GET /api/orders/my-orders
  * @desc    Get logged-in user's orders
  * @access  Private

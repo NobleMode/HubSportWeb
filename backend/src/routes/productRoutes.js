@@ -4,10 +4,18 @@ import authMiddleware from '../middlewares/authMiddleware.js';
 import { authorize } from '../middlewares/roleMiddleware.js';
 import { SCOPES } from '../config/permissions.js';
 
+import productItemRoutes from './productItemRoutes.js';
+
+// ... imports
+
 const router = express.Router();
+
+// Mount product item routes
+router.use('/:productId/items', productItemRoutes);
 
 /**
  * @route   GET /api/products
+// ... existing code
  * @desc    Get all products
  * @access  Public
  */

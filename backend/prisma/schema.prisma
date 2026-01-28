@@ -46,6 +46,13 @@ enum BookingStatus {
   CANCELLED
 }
 
+enum TransactionType {
+  DEPOSIT
+  PAYMENT
+  REFUND
+  INCOME
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -65,8 +72,21 @@ model User {
   reviews       Review[]
   shipments     Shipment[]     @relation("ShipperShipments")
   refreshTokens RefreshToken[]
+  transactions  Transaction[]
 
   @@map("users")
+}
+
+model Transaction {
+  id          String          @id @default(uuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id])
+  type        TransactionType
+  amount      Float
+  description String?
+  createdAt   DateTime        @default(now())
+
+  @@map("transactions")
 }
 
 model Product {
@@ -141,16 +161,16 @@ model OrderItem {
   depositFee    Float        @default(0)
   rentalDays    Int? // For rental items
   isRental      Boolean      @default(false)
-  
-  // Return & Damage Info
-  returnedAt    DateTime?
-  condition     String?      // GOOD, DAMAGED, LOST
-  damageFee     Float?       @default(0)
-  lateFee       Float?       @default(0)
-  notes         String?      // Notes on return condition
 
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  // Return & Damage Info
+  returnedAt DateTime?
+  condition  String? // GOOD, DAMAGED, LOST
+  damageFee  Float?    @default(0)
+  lateFee    Float?    @default(0)
+  notes      String? // Notes on return condition
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("order_items")
 }

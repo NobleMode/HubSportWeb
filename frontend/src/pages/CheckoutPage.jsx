@@ -9,6 +9,7 @@ import {
 } from '../features/cart/cartSlice';
 import { selectCurrentUser } from '../features/auth/authSlice';
 import { useCreateOrderMutation } from '../services/orderApi';
+import { useGetProfileQuery } from '../services/authApi';
 import Button from '../components/common/Button';
 
 /**
@@ -21,7 +22,12 @@ const CheckoutPage = () => {
   const cartItems = useSelector(selectCartItems);
   const totalAmount = useSelector(selectTotalAmount);
   const totalDeposit = useSelector(selectTotalDeposit);
-  const user = useSelector(selectCurrentUser);
+  const currentUser = useSelector(selectCurrentUser);
+  
+  // Fetch fresh profile data to ensure balance is up to date
+  const { data: profileResponse } = useGetProfileQuery();
+  const user = profileResponse?.data || currentUser;
+
   const [createOrder, { isLoading: isOrderLoading }] = useCreateOrderMutation();
 
   const [formData, setFormData] = useState({
@@ -51,8 +57,13 @@ const CheckoutPage = () => {
     }));
   };
 
+  const finalTotal = totalAmount + totalDeposit;
+  const isWalletInsufficient = formData.paymentMethod === 'WALLET' && user?.balance < finalTotal;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isWalletInsufficient) return;
+    
     setIsSubmitting(true);
 
     try {
@@ -78,7 +89,7 @@ const CheckoutPage = () => {
         navigate('/order-success');
     } catch (err) {
         console.error('Failed to place order:', err);
-        alert('Failed to place order. Please try again.');
+        alert(err.data?.message || 'Failed to place order. Please try again.');
     } finally {
         setIsSubmitting(false);
     }
@@ -175,7 +186,7 @@ const CheckoutPage = () => {
 
             <h2 className="text-xl font-bold mb-4 border-b pb-2 mt-8">Payment Method</h2>
              <div className="space-y-4">
-                <div className="flex items-center p-4 border border-primary-200 bg-primary-50 rounded-lg">
+                <div className={`flex items-center p-4 border rounded-lg cursor-pointer ${formData.paymentMethod === 'CASH' ? 'border-primary-500 bg-primary-50' : 'border-gray-200'}`}>
                     <input
                         type="radio"
                         id="cash"
@@ -185,20 +196,47 @@ const CheckoutPage = () => {
                         onChange={handleChange}
                         className="h-4 w-4 text-primary-600 focus:ring-primary-500"
                     />
-                    <label htmlFor="cash" className="ml-3 block font-medium text-gray-900">
+                    <label htmlFor="cash" className="ml-3 block font-medium text-gray-900 w-full cursor-pointer">
                          Cash on Delivery / Pay at Store
                     </label>
                 </div>
-                {/* Add more payment methods here later */}
+
+                <div className={`flex items-center p-4 border rounded-lg cursor-pointer ${formData.paymentMethod === 'WALLET' ? 'border-primary-500 bg-primary-50' : 'border-gray-200'}`}>
+                    <input
+                        type="radio"
+                        id="wallet"
+                        name="paymentMethod"
+                        value="WALLET"
+                        checked={formData.paymentMethod === 'WALLET'}
+                        onChange={handleChange}
+                        className="h-4 w-4 text-primary-600 focus:ring-primary-500"
+                    />
+                    <div className="ml-3 flex flex-col cursor-pointer w-full">
+                         <label htmlFor="wallet" className="block font-medium text-gray-900 cursor-pointer">
+                             Pay with Wallet
+                         </label>
+                         <span className="text-sm text-gray-500">
+                             Current Balance: <span className="font-bold text-green-600">
+                                 {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(user?.balance || 0)}
+                             </span>
+                         </span>
+                    </div>
+                </div>
              </div>
+             
+             {isWalletInsufficient && (
+                 <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                     Insufficient wallet balance. Please choose another payment method or top up your wallet.
+                 </div>
+             )}
              
              <div className="mt-8">
                  <Button 
                     type="submit" 
                     className="w-full py-3 text-lg"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isWalletInsufficient}
                  >
-                     {isSubmitting ? 'Processing...' : 'Place Order'}
+                     {isSubmitting ? 'Processing...' : `Place Order • ${finalTotal.toLocaleString('vi-VN')} VND`}
                  </Button>
              </div>
           </form>

@@ -98,6 +98,62 @@ class ProductItemController {
       next(error);
     }
   }
+  /**
+   * Log maintenance
+   * POST /api/product-items/:id/maintenance
+   */
+  async logMaintenance(req, res, next) {
+    try {
+      const { id } = req.params;
+      const result = await productItemService.logMaintenance(id, req.body);
+
+      res.status(201).json({
+        success: true,
+        message: 'Maintenance logged successfully',
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Liquidate item
+   * POST /api/product-items/:id/liquidate
+   */
+  async liquidate(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+      const item = await productItemService.liquidate(id, reason);
+
+      res.status(200).json({
+        success: true,
+        message: 'Product item liquidated successfully',
+        data: item,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get item history
+   * GET /api/product-items/:id/history
+   */
+  async getItemHistory(req, res, next) {
+    try {
+      const { id } = req.params;
+      const history = await productItemService.getItemHistory(id);
+
+      res.status(200).json({
+        success: true,
+        data: history,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new ProductItemController();

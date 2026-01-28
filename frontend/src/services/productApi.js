@@ -43,6 +43,48 @@ export const productApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Product"],
     }),
+    
+    // Product Items
+    getProductItems: builder.query({
+      query: (productId) => `/products/${productId}/items`,
+      providesTags: ['ProductItem'],
+    }),
+    createProductItem: builder.mutation({
+      query: (data) => ({
+        url: '/product-items',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['ProductItem', 'Product'],
+    }),
+    updateProductItem: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/product-items/${id}`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: ['ProductItem'],
+    }),
+    logMaintenance: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/product-items/${id}/maintenance`,
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['ProductItem'],
+    }),
+    liquidateItem: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/product-items/${id}/liquidate`,
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['ProductItem', 'Product'],
+    }),
+    getItemHistory: builder.query({
+      query: (id) => `/product-items/${id}/history`,
+      providesTags: ['ProductItem'],
+    }),
   }),
 });
 
@@ -52,4 +94,10 @@ export const {
   useCreateProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
+  useGetProductItemsQuery,
+  useCreateProductItemMutation,
+  useUpdateProductItemMutation,
+  useLogMaintenanceMutation,
+  useLiquidateItemMutation,
+  useGetItemHistoryQuery,
 } = productApi;

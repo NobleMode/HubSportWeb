@@ -46,6 +46,22 @@ enum BookingStatus {
   CANCELLED
 }
 
+enum Condition {
+  NEW
+  GOOD
+  FAIR
+  POOR
+  DAMAGED
+  DISPOSED
+}
+
+enum MaintenanceStatus {
+  NONE
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -102,8 +118,21 @@ model ProductItem {
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
 
+  // Lifecycle & Maintenance
+  condition           Condition         @default(GOOD)
+  maintenanceStatus   MaintenanceStatus @default(NONE)
+  lastMaintenanceDate DateTime?
+  nextMaintenanceDate DateTime?
+  maintenanceNotes    String?
+  purchaseDate        DateTime?
+  purchasePrice       Float?
+  isForLiquidation    Boolean           @default(false)
+  liquidationReason   String?
+  disposedAt          DateTime?
+
   // Relations
-  orderItems OrderItem[]
+  orderItems      OrderItem[]
+  maintenanceLogs MaintenanceLog[]
 
   @@map("product_items")
 }
@@ -122,8 +151,9 @@ model Order {
   updatedAt       DateTime    @updatedAt
 
   // Relations
-  orderItems OrderItem[]
-  shipment   Shipment?
+  orderItems      OrderItem[]
+  maintenanceLogs MaintenanceLog[]
+  shipment        Shipment?
 
   @@map("orders")
 }
@@ -141,16 +171,16 @@ model OrderItem {
   depositFee    Float        @default(0)
   rentalDays    Int? // For rental items
   isRental      Boolean      @default(false)
-  
-  // Return & Damage Info
-  returnedAt    DateTime?
-  condition     String?      // GOOD, DAMAGED, LOST
-  damageFee     Float?       @default(0)
-  lateFee       Float?       @default(0)
-  notes         String?      // Notes on return condition
 
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  // Return & Damage Info
+  returnedAt DateTime?
+  condition  String? // GOOD, DAMAGED, LOST
+  damageFee  Float?    @default(0)
+  lateFee    Float?    @default(0)
+  notes      String? // Notes on return condition
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("order_items")
 }
@@ -235,4 +265,21 @@ model RefreshToken {
   revoked   Boolean  @default(false)
 
   @@map("refresh_tokens")
+}
+
+model MaintenanceLog {
+  id            String      @id @default(uuid())
+  productItemId String
+  productItem   ProductItem @relation(fields: [productItemId], references: [id], onDelete: Cascade)
+  type          String // e.g., "Routine", "Repair", "Inspection"
+  description   String?
+  cost          Float?      @default(0)
+  performedBy   String? // Technician name
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime    @default(now())
+  order         Order?      @relation(fields: [orderId], references: [id])
+  orderId       String?
+
+  @@map("maintenance_logs")
 }

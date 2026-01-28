@@ -4,6 +4,7 @@ import LoadingSpinner from '../common/LoadingSpinner';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
 import { useToast } from '../../context/ToastContext';
+import ProductItemManagement from './ProductItemManagement';
 
 const ProductManagement = () => {
     const { data, isLoading, error } = useGetProductsQuery();
@@ -27,6 +28,9 @@ const ProductManagement = () => {
         salePrice: 0,
         rentalPrice: 0,
     });
+
+    // Item Management State
+    const [managingProduct, setManagingProduct] = useState(null);
 
     const products = data?.data || [];
 
@@ -178,6 +182,15 @@ const ProductManagement = () => {
                                     {product.stock}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                    {product.type === 'RENTAL' && (
+                                        <Button 
+                                            variant="ghost" 
+                                            className="text-blue-600 hover:text-blue-900"
+                                            onClick={() => setManagingProduct(product)}
+                                        >
+                                            Manage Items
+                                        </Button>
+                                    )}
                                     <Button 
                                         variant="ghost" 
                                         className="text-indigo-600 hover:text-indigo-900"
@@ -339,6 +352,21 @@ const ProductManagement = () => {
                         </Button>
                     </div>
                 </form>
+            </Modal>
+
+             {/* Item Management Modal */}
+             <Modal
+                isOpen={!!managingProduct}
+                onClose={() => setManagingProduct(null)}
+                title=""
+                className="max-w-4xl w-full"
+            >
+                {managingProduct && (
+                    <ProductItemManagement 
+                        product={managingProduct} 
+                        onClose={() => setManagingProduct(null)} 
+                    />
+                )}
             </Modal>
         </div>
     );

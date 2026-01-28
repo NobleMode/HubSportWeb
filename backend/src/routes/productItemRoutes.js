@@ -37,4 +37,25 @@ router.put('/:id', authMiddleware, authorize(SCOPES.MANAGE_PRODUCTS), productIte
  */
 router.delete('/:id', authMiddleware, authorize(SCOPES.MANAGE_PRODUCTS), productItemController.deleteItem.bind(productItemController));
 
+/**
+ * @route   POST /api/product-items/:id/maintenance
+ * @desc    Log maintenance for product item
+ * @access  Private/Admin
+ */
+router.post('/:id/maintenance', authMiddleware, authorize(SCOPES.MANAGE_PRODUCTS), productItemController.logMaintenance.bind(productItemController));
+
+/**
+ * @route   POST /api/product-items/:id/liquidate
+ * @desc    Liquidate product item
+ * @access  Private/Admin
+ */
+router.post('/:id/liquidate', authMiddleware, authorize(SCOPES.MANAGE_PRODUCTS), productItemController.liquidate.bind(productItemController));
+
+/**
+ * @route   GET /api/product-items/:id/history
+ * @desc    Get item history
+ * @access  Private/Admin
+ */
+router.get('/:id/history', authMiddleware, authorize(SCOPES.MANAGE_PRODUCTS), productItemController.getItemHistory.bind(productItemController));
+
 export default router;

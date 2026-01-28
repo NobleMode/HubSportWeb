@@ -56,8 +56,18 @@ class ProductItemService {
     // Uniqueness of serialNumber is handled by DB constraint
     // But we could add a check here if needed
 
-    return prisma.productItem.create({
-      data,
+    // Use transaction to create item and increment product stock
+    return prisma.$transaction(async (tx) => {
+      const item = await tx.productItem.create({
+        data,
+      });
+
+      await tx.product.update({
+        where: { id: data.productId },
+        data: { stock: { increment: 1 } },
+      });
+
+      return item;
     });
   }
 
@@ -71,13 +81,116 @@ class ProductItemService {
     });
   }
 
+
   /**
    * Delete item
    */
   async deleteItem(id) {
-    return prisma.productItem.delete({
-      where: { id },
+    const item = await prisma.productItem.findUnique({ where: { id } });
+    if (!item) throw new Error('Item not found');
+
+    return prisma.$transaction(async (tx) => {
+      await tx.productItem.delete({
+        where: { id },
+      });
+
+      await tx.product.update({
+        where: { id: item.productId },
+        data: { stock: { decrement: 1 } },
+      });
+      
+      return { success: true };
     });
+  }
+
+  /**
+   * Log maintenance activity
+   */
+  async logMaintenance(id, logData) {
+    const { type, description, cost, performedBy, status } = logData;
+
+    // Use transaction to update item and create log
+    return prisma.$transaction(async (tx) => {
+      const item = await tx.productItem.update({
+        where: { id },
+        data: {
+          maintenanceStatus: status || 'COMPLETED',
+          lastMaintenanceDate: new Date(),
+          maintenanceNotes: description,
+        },
+      });
+
+      const log = await tx.maintenanceLog.create({
+        data: {
+          productItemId: id,
+          type,
+          description,
+          cost: parseFloat(cost) || 0,
+          performedBy,
+          completedAt: new Date(),
+        },
+      });
+
+      return { item, log };
+    });
+  }
+
+
+  /**
+   * Liquidate item
+   */
+  async liquidate(id, reason) {
+    const item = await prisma.productItem.findUnique({ where: { id } });
+    if (!item) throw new Error('Item not found');
+
+    return prisma.$transaction(async (tx) => {
+      const updatedItem = await tx.productItem.update({
+        where: { id },
+        data: {
+          isForLiquidation: true,
+          liquidationReason: reason,
+          condition: 'DISPOSED',
+          disposedAt: new Date(),
+          status: 'LOST', 
+        },
+      });
+
+      // Decrement stock as it's no longer usable
+      await tx.product.update({
+        where: { id: item.productId },
+        data: { stock: { decrement: 1 } },
+      });
+
+      return updatedItem;
+    });
+  }
+
+  /**
+   * Get item history (Maintenance + Rentals)
+   */
+  async getItemHistory(id) {
+    const maintenanceLogs = await prisma.maintenanceLog.findMany({
+      where: { productItemId: id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const orderItems = await prisma.orderItem.findMany({
+      where: { productItemId: id },
+      include: {
+        order: {
+          select: { id: true, status: true, createdAt: true, user: { select: { name: true, email: true } } }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Combine and sort
+    const history = [
+      ...maintenanceLogs.map(l => ({ ...l, eventType: 'MAINTENANCE', date: l.createdAt })),
+      ...orderItems.map(o => ({ ...o, eventType: 'RENTAL', date: o.createdAt }))
+    ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    return history;
   }
 }
 

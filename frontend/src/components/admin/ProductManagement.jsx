@@ -3,6 +3,7 @@ import { useGetProductsQuery, useDeleteProductMutation, useCreateProductMutation
 import LoadingSpinner from '../common/LoadingSpinner';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
+import ImageUpload from '../common/ImageUpload';
 import { useToast } from '../../context/ToastContext';
 
 const ProductManagement = () => {
@@ -32,7 +33,7 @@ const ProductManagement = () => {
 
     const filteredProducts = products.filter(product => 
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description?.toLowerCase().includes(searchTerm.toLowerCase())
+        product.description?.toLowerCase().includes(searchTerm.toLowerCase()) 
     );
 
     const handleOpenModal = (product = null) => {
@@ -255,15 +256,22 @@ const ProductManagement = () => {
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Image URL</label>
-                        <input
-                            type="text"
-                            name="imageUrl"
-                            className="input-field mt-1"
+                    <div className="space-y-4">
+                        <ImageUpload
                             value={formData.imageUrl}
-                            onChange={handleInputChange}
+                            onChange={(url) => setFormData(prev => ({ ...prev, imageUrl: url }))}
                         />
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Or enter Image URL</label>
+                            <input
+                                type="text"
+                                name="imageUrl"
+                                placeholder="https://..."
+                                className="input-field mt-1"
+                                value={formData.imageUrl}
+                                onChange={handleInputChange}
+                            />
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -333,9 +341,12 @@ const ProductManagement = () => {
                         </Button>
                         <Button 
                             type="submit"
-                            disabled={isCreating}
+                            disabled={isCreating || isUpdating}
                         >
-                            {isCreating ? 'Creating...' : 'Create Product'}
+                            {editingProduct 
+                                ? (isUpdating ? 'Updating...' : 'Update Product') 
+                                : (isCreating ? 'Creating...' : 'Create Product')
+                            }
                         </Button>
                     </div>
                 </form>

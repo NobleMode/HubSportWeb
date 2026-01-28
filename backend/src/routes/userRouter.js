@@ -20,12 +20,14 @@ router.put(
 );
 router.get(
   "/role/:role",
-  authMiddleware,
+  // Public access allowed for listing experts
+  // authMiddleware, 
   userController.getAllUsersByRole.bind(userController),
 );
 router.get(
   "/:id",
-  authMiddleware,
+  // Public access allowed for viewing public profiles
+  // authMiddleware,
   userController.getUserById.bind(userController),
 );
 export default router;

@@ -14,7 +14,7 @@ const LandingPage = () => {
           <div className="lg:w-1/2">
             <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight leading-tight mb-6">
               ELEVATE{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-electricBlue-DEFAULT to-limeGreen-DEFAULT">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-electricBlue to-limeGreen">
                 YOUR GAME
               </span>
             </h1>
@@ -25,21 +25,21 @@ const LandingPage = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 to="/products"
-                className="px-8 py-4 bg-electricBlue-DEFAULT hover:bg-electricBlue-hover text-white font-bold rounded-full transition transform hover:scale-105 shadow-lg text-center"
+                className="px-8 py-4 bg-electricBlue hover:bg-electricBlue-hover text-white font-bold rounded-full transition transform hover:scale-105 shadow-lg text-center"
               >
                 Start renting
               </Link>
               {isAuthenticated ? (
                 <Link
                   to="/profile"
-                  className="px-8 py-4 border-2 border-limeGreen-DEFAULT text-limeGreen-DEFAULT hover:bg-limeGreen-DEFAULT hover:text-white font-bold rounded-full transition text-center"
+                  className="px-8 py-4 border-2 border-limeGreen text-limeGreen hover:bg-limeGreen hover:text-white font-bold rounded-full transition text-center"
                 >
                   My Profile
                 </Link>
               ) : (
                 <Link
                   to="/register"
-                  className="px-8 py-4 border-2 border-limeGreen-DEFAULT text-limeGreen-DEFAULT hover:bg-limeGreen-DEFAULT hover:text-white font-bold rounded-full transition text-center"
+                  className="px-8 py-4 border-2 border-limeGreen text-limeGreen hover:bg-limeGreen hover:text-white font-bold rounded-full transition text-center"
                 >
                   Join Now
                 </Link>
@@ -48,8 +48,8 @@ const LandingPage = () => {
           </div>
           <div className="lg:w-1/2 mb-12 lg:mb-0 relative">
             {/* Abstract energetic shapes background */}
-            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-electricBlue-100 rounded-full blur-3xl opacity-50 animate-pulse"></div>
-            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-limeGreen-100 rounded-full blur-3xl opacity-50"></div>
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-blue-100 rounded-full blur-3xl opacity-50 animate-pulse"></div>
+            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-lime-100 rounded-full blur-3xl opacity-50"></div>
 
             <img
               src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
@@ -80,7 +80,7 @@ const LandingPage = () => {
                   alt="Badminton"
                   className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
                 />
-                <div className="absolute top-4 right-4 bg-limeGreen-DEFAULT text-white text-xs font-bold px-3 py-1 rounded-full">
+                <div className="absolute top-4 right-4 bg-limeGreen text-white text-xs font-bold px-3 py-1 rounded-full">
                   NEW
                 </div>
               </div>
@@ -89,12 +89,12 @@ const LandingPage = () => {
                 Badminton • Professional
               </p>
               <div className="flex justify-between items-center">
-                <span className="text-electricBlue-DEFAULT font-bold text-lg">
+                <span className="text-electricBlue font-bold text-lg">
                   $15/day
                 </span>
                 <Link
                   to="/products/1"
-                  className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-800 hover:bg-electricBlue-DEFAULT hover:text-white transition"
+                  className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-800 hover:bg-electricBlue hover:text-white transition"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -126,12 +126,12 @@ const LandingPage = () => {
               <h3 className="text-xl font-bold mb-2">Wilson Pro Staff</h3>
               <p className="text-gray-400 mb-6 text-sm">Tennis • Elite</p>
               <div className="flex justify-between items-center">
-                <span className="text-electricBlue-DEFAULT font-bold text-lg">
+                <span className="text-electricBlue font-bold text-lg">
                   $25/day
                 </span>
                 <Link
                   to="/products/2"
-                  className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-800 hover:bg-electricBlue-DEFAULT hover:text-white transition"
+                  className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-800 hover:bg-electricBlue hover:text-white transition"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -165,12 +165,12 @@ const LandingPage = () => {
                 Soccer • Official Match Ball
               </p>
               <div className="flex justify-between items-center">
-                <span className="text-electricBlue-DEFAULT font-bold text-lg">
+                <span className="text-electricBlue font-bold text-lg">
                   $10/day
                 </span>
                 <Link
                   to="/products/3"
-                  className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-800 hover:bg-electricBlue-DEFAULT hover:text-white transition"
+                  className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-800 hover:bg-electricBlue hover:text-white transition"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -220,7 +220,7 @@ const LandingPage = () => {
                     className="w-full bg-gray-100 rounded-t-lg relative group overflow-hidden"
                   >
                     <div
-                      className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-electricBlue-DEFAULT to-blue-400 rounded-t-lg transition-all duration-1000 group-hover:opacity-80"
+                      className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-electricBlue to-blue-400 rounded-t-lg transition-all duration-1000 group-hover:opacity-80"
                       style={{ height: `${h}%` }}
                     ></div>
                   </div>
@@ -242,8 +242,7 @@ const LandingPage = () => {
                 <div className="p-4 bg-white rounded-2xl shadow-sm">
                   <div className="text-gray-400 text-xs mb-1">Active Hours</div>
                   <div className="text-2xl font-bold text-gray-800">
-                    18.5{" "}
-                    <span className="text-limeGreen-DEFAULT text-sm">⚡</span>
+                    18.5 <span className="text-limeGreen text-sm">⚡</span>
                   </div>
                 </div>
               </div>
@@ -267,7 +266,7 @@ const LandingPage = () => {
                 "Goal setting and tracking",
               ].map((item, i) => (
                 <li key={i} className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full bg-limeGreen-100 flex items-center justify-center text-limeGreen-DEFAULT">
+                  <div className="w-6 h-6 rounded-full bg-lime-100 flex items-center justify-center text-limeGreen">
                     <svg
                       className="w-4 h-4"
                       fill="none"
@@ -326,9 +325,9 @@ const LandingPage = () => {
             ].map((expert, i) => (
               <div
                 key={i}
-                className="bg-gray-800 rounded-2xl p-6 text-center hover:-translate-y-2 transition duration-300 border border-gray-700 hover:border-electricBlue-DEFAULT"
+                className="bg-gray-800 rounded-2xl p-6 text-center hover:-translate-y-2 transition duration-300 border border-gray-700 hover:border-electricBlue"
               >
-                <div className="w-24 h-24 mx-auto rounded-full overflow-hidden mb-4 border-2 border-electricBlue-DEFAULT p-1">
+                <div className="w-24 h-24 mx-auto rounded-full overflow-hidden mb-4 border-2 border-electricBlue p-1">
                   <img
                     src={expert.img}
                     alt={expert.name}
@@ -344,7 +343,7 @@ const LandingPage = () => {
                 </div>
                 <Link
                   to="/players"
-                  className="block w-full py-2 rounded-lg bg-gray-700 hover:bg-electricBlue-DEFAULT text-white transition font-medium text-sm"
+                  className="block w-full py-2 rounded-lg bg-gray-700 hover:bg-electricBlue text-white transition font-medium text-sm"
                 >
                   View Profile
                 </Link>
@@ -357,10 +356,10 @@ const LandingPage = () => {
       {/* Subscription CTA Section */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
-          <div className="bg-gradient-to-br from-electricBlue-600 to-electricBlue-900 rounded-3xl p-12 lg:p-20 text-center text-white relative overflow-hidden">
+          <div className="bg-gradient-to-br from-blue-600 to-blue-900 rounded-3xl p-12 lg:p-20 text-center text-white relative overflow-hidden">
             {/* Decor circles */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-limeGreen-DEFAULT opacity-20 rounded-full -ml-32 -mb-32 filter blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-limeGreen opacity-20 rounded-full -ml-32 -mb-32 filter blur-3xl"></div>
 
             <h2 className="text-4xl lg:text-5xl font-bold mb-6 relative z-10">
               Ready to Level Up?
@@ -372,14 +371,14 @@ const LandingPage = () => {
             {isAuthenticated ? (
               <Link
                 to="/products"
-                className="inline-block px-10 py-5 bg-limeGreen-DEFAULT text-black font-extrabold rounded-full text-lg hover:bg-limeGreen-hover hover:scale-105 transition shadow-[0_0_20px_rgba(132,204,22,0.6)] relative z-10"
+                className="inline-block px-10 py-5 bg-limeGreen text-black font-extrabold rounded-full text-lg hover:bg-limeGreen-hover hover:scale-105 transition shadow-[0_0_20px_rgba(132,204,22,0.6)] relative z-10"
               >
                 BROWSE PREMIUM GEAR
               </Link>
             ) : (
               <Link
                 to="/register"
-                className="inline-block px-10 py-5 bg-limeGreen-DEFAULT text-black font-extrabold rounded-full text-lg hover:bg-limeGreen-hover hover:scale-105 transition shadow-[0_0_20px_rgba(132,204,22,0.6)] relative z-10"
+                className="inline-block px-10 py-5 bg-limeGreen text-black font-extrabold rounded-full text-lg hover:bg-limeGreen-hover hover:scale-105 transition shadow-[0_0_20px_rgba(132,204,22,0.6)] relative z-10"
               >
                 GET STARTED TODAY
               </Link>
@@ -399,13 +398,13 @@ const LandingPage = () => {
             <span className="ml-2 text-sm">© 2024</span>
           </div>
           <div className="flex gap-8 text-sm">
-            <a href="#" className="hover:text-electricBlue-DEFAULT">
+            <a href="#" className="hover:text-electricBlue">
               Privacy Policy
             </a>
-            <a href="#" className="hover:text-electricBlue-DEFAULT">
+            <a href="#" className="hover:text-electricBlue">
               Terms of Service
             </a>
-            <a href="#" className="hover:text-electricBlue-DEFAULT">
+            <a href="#" className="hover:text-electricBlue">
               Contact Support
             </a>
           </div>

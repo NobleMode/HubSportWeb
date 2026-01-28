@@ -43,6 +43,8 @@ import LoadingSpinner from "./components/common/LoadingSpinner";
 import RoleGuard from "./components/common/RoleGuard";
 import { ToastProvider } from "./context/ToastContext";
 
+import ScrollToTop from "./components/common/ScrollToTop";
+
 /**
  * Main App Component
  * Configures routing with protected routes
@@ -89,6 +91,7 @@ function App() {
 
   return (
     <Router>
+      <ScrollToTop />
       <ToastProvider>
         <MainLayout>
           <Routes>

@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useGetProductByIdQuery } from "../services/productApi";
+import {
+  useGetProductByIdQuery,
+  useGetProductsQuery,
+} from "../services/productApi";
 import { getImageUrl } from "../utils/imageUtils";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "../features/cart/cartSlice";
 import { selectIsAuthenticated } from "../features/auth/authSlice";
 import Button from "../components/common/Button";
 import LoadingSpinner from "../components/common/LoadingSpinner";
+import Toast from "../components/common/Toast";
 
 /**
  * Product Details Page
@@ -32,6 +36,63 @@ const ProductDetailsPage = () => {
   // Smart Popup State
   const [showUpsell, setShowUpsell] = useState(false);
 
+  // Toast State
+  const [toast, setToast] = useState(null);
+
+  // Fetch related products with the same category
+  const { data: relatedProductsData } = useGetProductsQuery(
+    {
+      category: data?.data?.category,
+      limit: 8, // Fetch more to have options after filtering
+    },
+    {
+      skip: !data?.data?.category, // Skip if we don't have the category yet
+    },
+  );
+
+  // Always fetch some random products as fallback
+  const { data: fallbackProductsData } = useGetProductsQuery(
+    {
+      limit: 8,
+    },
+    {
+      skip: !data?.data, // Only skip if no product data at all
+    },
+  );
+
+  // Get final related products list
+  const getRelatedProducts = () => {
+    if (!product) return [];
+
+    // Start with same-category products
+    let sameCategoryProducts = (relatedProductsData?.data || []).filter(
+      (p) => p.id !== product.id,
+    );
+
+    // Get all other products
+    let otherProducts = (fallbackProductsData?.data || []).filter(
+      (p) => p.id !== product.id,
+    );
+
+    // Shuffle same category products
+    const shuffledSameCategory = [...sameCategoryProducts].sort(
+      () => Math.random() - 0.5,
+    );
+
+    // If we have enough from same category, use them
+    if (shuffledSameCategory.length >= 4) {
+      return shuffledSameCategory.slice(0, 4);
+    }
+
+    // Otherwise, combine with random products
+    const shuffledOthers = [...otherProducts]
+      .filter((p) => !shuffledSameCategory.find((sp) => sp.id === p.id)) // Avoid duplicates
+      .sort(() => Math.random() - 0.5);
+
+    const combined = [...shuffledSameCategory, ...shuffledOthers];
+    return combined.slice(0, 4);
+  };
+
   useEffect(() => {
     let timer;
     if (activeTab === "BUY") {
@@ -44,46 +105,6 @@ const ProductDetailsPage = () => {
     }
     return () => clearTimeout(timer);
   }, [activeTab]);
-
-  const handleAddToCart = (product) => {
-    // Determine final price based on selection
-    let finalPrice = 0;
-    let type = activeTab === "RENT" ? "RENTAL" : "SALE";
-
-    if (activeTab === "RENT") {
-      // Calculation logic for demo
-      let basePrice = product.rentalPrice;
-      if (rentCondition === "LIKE_NEW") basePrice *= 1.2; // 20% premium
-
-      if (rentDuration === "WEEK")
-        basePrice *= 7 * 0.9; // 10% off for week
-      else if (rentDuration === "MONTH") basePrice *= 30 * 0.8; // 20% off for month
-
-      finalPrice = Math.round(basePrice);
-    } else {
-      finalPrice =
-        buyCondition === "NEW"
-          ? product.salePrice
-          : Math.round(product.salePrice * 0.7); // 30% off for used
-    }
-
-    dispatch(
-      addToCart({
-        id: product.id,
-        name: product.name,
-        type: type,
-        // For cart simplicity, we just use the calculated price as "salePrice" and store details in metadata if needed
-        // But to fit current schema, we map back to simple fields:
-        salePrice: activeTab === "BUY" ? finalPrice : 0,
-        rentalPrice: activeTab === "RENT" ? finalPrice : 0,
-        depositFee: product.depositFee,
-        quantity: 1,
-      }),
-    );
-
-    // Simple visual feedback could go here
-    alert("Added to card");
-  };
 
   if (isLoading) {
     return (
@@ -111,23 +132,96 @@ const ProductDetailsPage = () => {
   // Calculate dynamic prices for display
   const getRentPrice = () => {
     let price = product.rentalPrice || 0;
-    if (rentCondition === "LIKE_NEW") price *= 1.2;
+    // Condition Adjustments
+    if (rentCondition === "LIKE_NEW") price *= 1.2; // +20% for Like New
+
     return Math.round(price);
+  };
+
+  const getUserSelectedRentalDays = () => {
+    switch (rentDuration) {
+      case "WEEK":
+        return 7;
+      case "MONTH":
+        return 30;
+      default:
+        return 1;
+    }
+  };
+
+  const getRentTotal = () => {
+    let dailyRate = getRentPrice();
+    let days = getUserSelectedRentalDays();
+    let total = dailyRate * days;
+
+    // Apply Duration Discounts to the TOTAL
+    if (rentDuration === "WEEK")
+      total *= 0.9; // 10% off total
+    else if (rentDuration === "MONTH") total *= 0.8; // 20% off total
+
+    return Math.round(total);
   };
 
   const getBuyPrice = () => {
     let price = product.salePrice || 0;
-    if (buyCondition === "USED") price *= 0.7;
+    if (buyCondition === "USED") price *= 0.7; // 30% off for used
     return Math.round(price);
+  };
+
+  const handleAddToCart = (product) => {
+    let finalPrice = 0;
+    let type = activeTab === "RENT" ? "RENTAL" : "SALE";
+    let rentalDays = 1;
+    let variantId = product.id;
+    let variantName = product.name;
+
+    if (activeTab === "RENT") {
+      const baseDaily = getRentPrice();
+      rentalDays = getUserSelectedRentalDays();
+      const totalAmount = getRentTotal();
+
+      finalPrice = totalAmount / rentalDays;
+
+      variantId = `${product.id}-RENT-${rentCondition}-${rentDuration}`;
+      variantName = `${product.name} (Rent: ${rentCondition === "LIKE_NEW" ? "Like New" : "Used"} - ${rentDuration})`;
+    } else {
+      finalPrice = getBuyPrice();
+      variantId = `${product.id}-BUY-${buyCondition}`;
+      variantName = `${product.name} (Buy: ${buyCondition === "NEW" ? "New" : "Used"})`;
+    }
+
+    dispatch(
+      addToCart({
+        id: variantId, // Unique ID for this variant
+        productId: product.id, // Reference to original product
+        name: variantName,
+        type: type,
+        salePrice: activeTab === "BUY" ? finalPrice : 0,
+        rentalPrice: activeTab === "RENT" ? finalPrice : 0,
+        rentalDays: rentalDays,
+        depositFee: product.depositFee,
+        quantity: 1,
+        imageUrl: product.imageUrl, // Ensure image is passed
+      }),
+    );
+    // Visual feedback
+    setToast({ message: "Added to cart successfully!", type: "success" });
   };
 
   return (
     <div className="bg-gray-50 min-h-screen py-8">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Breadcrumb / Back */}
         <button
           onClick={() => navigate("/products")}
-          className="mb-6 flex items-center text-gray-500 hover:text-electricBlue-DEFAULT transition-colors font-medium"
+          className="mb-6 flex items-center text-gray-500 hover:text-electricBlue transition-colors font-medium"
         >
           <svg
             className="h-5 w-5 mr-1"
@@ -167,8 +261,8 @@ const ProductDetailsPage = () => {
               <span
                 className={`px-4 py-2 text-sm font-bold uppercase tracking-wider rounded-lg shadow-md ${
                   activeTab === "RENT"
-                    ? "bg-electricBlue-DEFAULT text-white"
-                    : "bg-limeGreen-DEFAULT text-white"
+                    ? "bg-green-500 text-white"
+                    : "bg-green-500 text-white"
                 }`}
               >
                 {activeTab === "RENT"
@@ -205,7 +299,7 @@ const ProductDetailsPage = () => {
                 onClick={() => setActiveTab("RENT")}
                 className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold uppercase tracking-wide transition-all duration-300 ${
                   activeTab === "RENT"
-                    ? "bg-white text-electricBlue-DEFAULT shadow-sm"
+                    ? "bg-white text-electricBlue shadow-sm"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -215,7 +309,7 @@ const ProductDetailsPage = () => {
                 onClick={() => setActiveTab("BUY")}
                 className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold uppercase tracking-wide transition-all duration-300 ${
                   activeTab === "BUY"
-                    ? "bg-white text-limeGreen-DEFAULT shadow-sm"
+                    ? "bg-white text-limeGreen shadow-sm"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -236,7 +330,7 @@ const ProductDetailsPage = () => {
                       onClick={() => setRentCondition("LIKE_NEW")}
                       className={`flex-1 border rounded-xl p-3 text-left transition-all ${
                         rentCondition === "LIKE_NEW"
-                          ? "border-electricBlue-DEFAULT bg-blue-50/50 ring-1 ring-electricBlue-DEFAULT"
+                          ? "border-electricBlue bg-blue-50/50 ring-1 ring-electricBlue"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
@@ -251,7 +345,7 @@ const ProductDetailsPage = () => {
                       onClick={() => setRentCondition("USED")}
                       className={`flex-1 border rounded-xl p-3 text-left transition-all ${
                         rentCondition === "USED"
-                          ? "border-electricBlue-DEFAULT bg-blue-50/50 ring-1 ring-electricBlue-DEFAULT"
+                          ? "border-electricBlue bg-blue-50/50 ring-1 ring-electricBlue"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
@@ -297,9 +391,9 @@ const ProductDetailsPage = () => {
                       Total Estimate
                     </p>
                     <p className="text-3xl font-extrabold text-gray-900">
-                      {getRentPrice().toLocaleString("vi-VN")}{" "}
+                      {getRentTotal().toLocaleString("vi-VN")}{" "}
                       <span className="text-sm text-gray-500 font-medium">
-                        /day
+                        / {rentDuration.toLowerCase()}
                       </span>
                     </p>
                   </div>
@@ -309,7 +403,7 @@ const ProductDetailsPage = () => {
                         ? navigate("/login")
                         : handleAddToCart(product)
                     }
-                    className="bg-electricBlue-DEFAULT hover:bg-electricBlue-hover px-8 py-4 rounded-xl shadow-lg shadow-electricBlue-DEFAULT/30"
+                    className="bg-electricBlue hover:bg-electricBlue-hover px-8 py-4 rounded-xl shadow-lg shadow-electricBlue/30"
                   >
                     Rent Now
                   </Button>
@@ -326,7 +420,7 @@ const ProductDetailsPage = () => {
                     onClick={() => setBuyCondition("NEW")}
                     className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
                       buyCondition === "NEW"
-                        ? "border-limeGreen-DEFAULT bg-green-50/30 ring-1 ring-limeGreen-DEFAULT"
+                        ? "border-limeGreen bg-green-50/30 ring-1 ring-limeGreen"
                         : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
@@ -347,7 +441,7 @@ const ProductDetailsPage = () => {
                     onClick={() => setBuyCondition("USED")}
                     className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
                       buyCondition === "USED"
-                        ? "border-limeGreen-DEFAULT bg-green-50/30 ring-1 ring-limeGreen-DEFAULT"
+                        ? "border-limeGreen bg-green-50/30 ring-1 ring-limeGreen"
                         : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
@@ -365,7 +459,7 @@ const ProductDetailsPage = () => {
                       </span>
                     </div>
                     <div className="text-right">
-                      <span className="block font-bold text-limeGreen-DEFAULT text-lg">
+                      <span className="block font-bold text-limeGreen text-lg">
                         {Math.round(
                           (product.salePrice || 0) * 0.7,
                         ).toLocaleString("vi-VN")}{" "}
@@ -397,7 +491,7 @@ const ProductDetailsPage = () => {
                         ? navigate("/login")
                         : handleAddToCart(product)
                     }
-                    className="bg-limeGreen-DEFAULT hover:bg-limeGreen-hover px-8 py-4 rounded-xl shadow-lg shadow-limeGreen-DEFAULT/30 text-white"
+                    className="bg-limeGreen hover:bg-limeGreen-hover px-8 py-4 rounded-xl shadow-lg shadow-limeGreen/30 text-white"
                   >
                     Purchase Now
                   </Button>
@@ -407,7 +501,7 @@ const ProductDetailsPage = () => {
 
             {/* UPSELL POPUP (Displayed when hesitating on BUY tab) */}
             {showUpsell && activeTab === "BUY" && (
-              <div className="absolute bottom-24 right-0 md:-right-4 w-72 bg-white p-4 rounded-2xl shadow-2xl border border-electricBlue-100 animate-bounce-in z-20">
+              <div className="absolute bottom-24 right-0 md:-right-4 w-72 bg-white p-4 rounded-2xl shadow-2xl border border-blue-100 animate-bounce-in z-20">
                 <button
                   onClick={() => setShowUpsell(false)}
                   className="absolute top-2 right-2 text-gray-300 hover:text-gray-500"
@@ -419,20 +513,155 @@ const ProductDetailsPage = () => {
                   <h4 className="font-bold text-gray-900">Not sure yet?</h4>
                   <p className="text-sm text-gray-600 mb-2">
                     Why risk it? Rent this item for just{" "}
-                    <span className="text-electricBlue-DEFAULT font-bold">
-                      50k/day
-                    </span>{" "}
+                    <span className="text-electricBlue font-bold">50k/day</span>{" "}
                     to test it out first!
                   </p>
                   <button
                     onClick={() => setActiveTab("RENT")}
-                    className="text-sm font-bold text-electricBlue-DEFAULT hover:underline text-left"
+                    className="text-sm font-bold text-electricBlue hover:underline text-left"
                   >
                     → Switch to Rental
                   </button>
                 </div>
               </div>
             )}
+          </div>
+        </div>
+        <div className="container mx-auto px-4 max-w-6xl mt-8">
+          {/* Specifications Section */}
+          <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Specifications
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-500 font-medium">Brand</span>
+                <span className="text-gray-900 font-semibold">
+                  {product.brand || "SportHub"}
+                </span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-500 font-medium">Model</span>
+                <span className="text-gray-900 font-semibold">
+                  {product.model || "Standard"}
+                </span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-500 font-medium">Type</span>
+                <span className="text-gray-900 font-semibold">
+                  {product.category}
+                </span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-500 font-medium">Color</span>
+                <span className="text-gray-900 font-semibold">
+                  {product.color || "Multi-color"}
+                </span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-500 font-medium">Condition</span>
+                <span className="text-gray-900 font-semibold">Excellent</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="text-gray-500 font-medium">Stock Status</span>
+                <span className="text-gray-900 font-semibold text-green-600">
+                  In Stock
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-10 bg-blue-50/50 rounded-2xl p-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-6">
+                Key Features
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
+                {[
+                  "Professional grade material for durability",
+                  "Ergonomic design for maximum comfort",
+                  "Certified by international sports federations",
+                  "Lightweight construction for agility",
+                  "Weather-resistant coating",
+                  "Includes standard 1-year warranty",
+                ].map((feature, idx) => (
+                  <div key={idx} className="flex items-start gap-3">
+                    <span className="text-green-500 mt-1">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </span>
+                    <span className="text-gray-700">{feature}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Related Products */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Related Products
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+              {/* Related Products - Show products from same category or random if none available */}
+              {getRelatedProducts().map((relatedProduct) => (
+                <div
+                  key={relatedProduct.id}
+                  className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow group flex flex-col h-full cursor-pointer"
+                  onClick={() => navigate(`/products/${relatedProduct.id}`)}
+                >
+                  <div className="relative h-48 bg-gray-100 overflow-hidden">
+                    {relatedProduct.imageUrl ? (
+                      <img
+                        src={getImageUrl(relatedProduct.imageUrl)}
+                        alt={relatedProduct.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300">
+                        <svg
+                          className="w-10 h-10"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4 flex flex-col flex-grow">
+                    <span className="text-xs text-gray-500 font-medium mb-1">
+                      {relatedProduct.category}
+                    </span>
+                    <h4 className="font-bold text-gray-900 mb-1 line-clamp-1">
+                      {relatedProduct.name}
+                    </h4>
+                    <div className="mt-auto pt-2">
+                      <span className="text-electricBlue font-bold block">
+                        {relatedProduct.rentalPrice?.toLocaleString()}₫
+                        <span className="text-xs text-gray-400 font-normal">
+                          /day
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

@@ -74,20 +74,20 @@ const RegisterPage = () => {
             alt="Runner"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-limeGreen-900 mix-blend-multiply"></div>
+          <div className="absolute inset-0 bg-lime-900 mix-blend-multiply"></div>
         </div>
 
         <div className="relative z-10 text-white max-w-lg text-right">
           <h2 className="text-4xl font-extrabold mb-6 leading-tight">
             Start Your <br />
-            <span className="text-limeGreen-DEFAULT">Journey Today</span>
+            <span className="text-limeGreen">Journey Today</span>
           </h2>
           <p className="text-gray-300 text-lg mb-8">
             "The only bad workout is the one that didn't happen. Create an
             account and get moving."
           </p>
           {/* Decoration */}
-          <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-electricBlue-DEFAULT rounded-full mix-blend-overlay filter blur-3xl opacity-30 animate-pulse"></div>
+          <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-electricBlue rounded-full mix-blend-overlay filter blur-3xl opacity-30 animate-pulse"></div>
         </div>
       </div>
 
@@ -124,7 +124,7 @@ const RegisterPage = () => {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-limeGreen-DEFAULT focus:border-transparent transition"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-limeGreen focus:border-transparent transition"
                 placeholder="John Doe"
               />
             </div>
@@ -143,7 +143,7 @@ const RegisterPage = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-limeGreen-DEFAULT focus:border-transparent transition"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-limeGreen focus:border-transparent transition"
                 placeholder="name@example.com"
               />
             </div>
@@ -162,7 +162,7 @@ const RegisterPage = () => {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-limeGreen-DEFAULT focus:border-transparent transition"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-limeGreen focus:border-transparent transition"
                 placeholder="••••••••"
               />
             </div>
@@ -181,7 +181,7 @@ const RegisterPage = () => {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-limeGreen-DEFAULT focus:border-transparent transition"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-limeGreen focus:border-transparent transition"
                 placeholder="••••••••"
               />
             </div>
@@ -189,7 +189,7 @@ const RegisterPage = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-4 text-black bg-electricBlue-DEFAULT hover:bg-electricBlue-hover text-white font-bold rounded-xl shadow-lg shadow-electricBlue-DEFAULT/30 transition transform hover:-translate-y-1 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-4 text-black bg-electricBlue hover:bg-electricBlue-hover text-white font-bold rounded-xl shadow-lg shadow-electricBlue/30 transition transform hover:-translate-y-1 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <LoadingSpinner size="sm" color="white" />
@@ -204,7 +204,7 @@ const RegisterPage = () => {
               Already have an account?{" "}
               <Link
                 to="/login"
-                className="text-limeGreen-DEFAULT font-bold hover:underline"
+                className="text-limeGreen font-bold hover:underline"
               >
                 Login here
               </Link>

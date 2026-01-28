@@ -1,4 +1,4 @@
-import prisma from '../config/database.js';
+import prisma from "../config/database.js";
 
 /**
  * Product Service
@@ -9,7 +9,14 @@ class ProductService {
    * Get all products
    */
   async getAllProducts(filters = {}) {
-    const { type, category, isActive = true } = filters;
+    const {
+      type,
+      category,
+      isActive = true,
+      search,
+      minPrice,
+      maxPrice,
+    } = filters;
 
     const where = {
       isActive,
@@ -17,11 +24,54 @@ class ProductService {
       ...(category && { category }),
     };
 
+    // Search filter (name or description)
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    // Price filter
+    // Checks if either salePrice or rentalPrice falls within the range
+    if (minPrice || maxPrice) {
+      const priceConditions = [];
+      const min = minPrice ? parseFloat(minPrice) : 0;
+      const max = maxPrice ? parseFloat(maxPrice) : Number.MAX_SAFE_INTEGER;
+
+      // Condition for Sale Price
+      priceConditions.push({
+        salePrice: {
+          gte: min,
+          lte: max,
+        },
+      });
+
+      // Condition for Rental Price
+      priceConditions.push({
+        rentalPrice: {
+          gte: min,
+          lte: max,
+        },
+      });
+
+      // Combine with existing OR or create new AND
+      if (where.OR) {
+        where.AND = [
+          { OR: where.OR }, // Preserve Search OR
+          { OR: priceConditions }, // Price OR
+        ];
+        delete where.OR;
+      } else {
+        where.OR = priceConditions;
+      }
+    }
+
     const products = await prisma.product.findMany({
       where,
       include: {
         productItems: {
-          where: { status: 'AVAILABLE' },
+          where: { status: "AVAILABLE" },
         },
         reviews: {
           select: {
@@ -29,13 +79,17 @@ class ProductService {
           },
         },
       },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
     // Calculate average rating for each product
     const productsWithRating = products.map((product) => {
       const avgRating =
         product.reviews.length > 0
-          ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length
+          ? product.reviews.reduce((sum, review) => sum + review.rating, 0) /
+            product.reviews.length
           : 0;
 
       return {
@@ -72,7 +126,7 @@ class ProductService {
     });
 
     if (!product) {
-      throw new Error('Product not found');
+      throw new Error("Product not found");
     }
 
     return product;
@@ -109,7 +163,7 @@ class ProductService {
       where: { id },
     });
 
-    return { message: 'Product deleted successfully' };
+    return { message: "Product deleted successfully" };
   }
 }
 

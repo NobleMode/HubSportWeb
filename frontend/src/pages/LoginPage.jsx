@@ -58,14 +58,14 @@ const LoginPage = () => {
   return (
     <div className="min-h-[calc(100vh-80px)] flex flex-col md:flex-row bg-gray-50">
       {/* Left Side - Image/Branding */}
-      <div className="md:w-1/2 bg-gradient-to-br from-electricBlue-800 to-electricBlue-900 relative hidden md:flex items-center justify-center p-12 overflow-hidden">
+      <div className="md:w-1/2 bg-gradient-to-br from-blue-800 to-blue-900 relative hidden md:flex items-center justify-center p-12 overflow-hidden">
         <div className="absolute inset-0 z-0 opacity-40">
           <img
             src="https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=2069&auto=format&fit=crop"
             alt="Gym background"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-electricBlue-900 mix-blend-multiply"></div>
+          <div className="absolute inset-0 bg-blue-900 mix-blend-multiply"></div>
         </div>
 
         <div className="relative z-10 text-white max-w-lg">
@@ -83,7 +83,7 @@ const LoginPage = () => {
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="w-10 h-10 rounded-full border-2 border-electricBlue-800 bg-gray-300"
+                  className="w-10 h-10 rounded-full border-2 border-blue-800 bg-gray-300"
                 ></div>
               ))}
             </div>
@@ -92,8 +92,8 @@ const LoginPage = () => {
         </div>
 
         {/* Decoration */}
-        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-limeGreen-DEFAULT rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-electricBlue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-limeGreen rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
       </div>
 
       {/* Right Side - Form */}
@@ -127,7 +127,7 @@ const LoginPage = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-electricBlue-DEFAULT focus:border-transparent transition"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-electricBlue focus:border-transparent transition"
                 placeholder="name@example.com"
               />
             </div>
@@ -142,7 +142,7 @@ const LoginPage = () => {
                 </label>
                 <a
                   href="#"
-                  className="text-sm text-electricBlue-DEFAULT hover:underline font-medium"
+                  className="text-sm text-electricBlue hover:underline font-medium"
                 >
                   Forgot?
                 </a>
@@ -154,7 +154,7 @@ const LoginPage = () => {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-electricBlue-DEFAULT focus:border-transparent transition"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-electricBlue focus:border-transparent transition"
                 placeholder="••••••••"
               />
             </div>
@@ -162,7 +162,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-4 text-black bg-limeGreen-DEFAULT hover:bg-limeGreen-hover text-white font-bold rounded-xl shadow-lg shadow-limeGreen-DEFAULT/30 transition transform hover:-translate-y-1 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-4 text-black bg-limeGreen hover:bg-limeGreen-hover text-white font-bold rounded-xl shadow-lg shadow-limeGreen/30 transition transform hover:-translate-y-1 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <LoadingSpinner size="sm" color="white" />
@@ -177,7 +177,7 @@ const LoginPage = () => {
               Don't have an account?{" "}
               <Link
                 to="/register"
-                className="text-electricBlue-DEFAULT font-bold hover:underline"
+                className="text-electricBlue font-bold hover:underline"
               >
                 Register Now
               </Link>

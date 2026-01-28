@@ -60,7 +60,7 @@ const Header = () => {
             className="text-2xl font-extrabold tracking-tight text-gray-900 group"
           >
             Sport
-            <span className="text-electricBlue-DEFAULT group-hover:text-limeGreen-DEFAULT transition-colors">
+            <span className="text-electricBlue group-hover:text-limeGreen transition-colors">
               Hub
             </span>
           </Link>
@@ -69,19 +69,19 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-8">
             <Link
               to="/"
-              className="text-gray-600 hover:text-electricBlue-DEFAULT font-medium transition-colors"
+              className="text-gray-600 hover:text-electricBlue font-medium transition-colors"
             >
               Home
             </Link>
             <Link
               to="/products"
-              className="text-gray-600 hover:text-electricBlue-DEFAULT font-medium transition-colors"
+              className="text-gray-600 hover:text-electricBlue font-medium transition-colors"
             >
               Products
             </Link>
             <Link
               to="/players"
-              className="text-gray-600 hover:text-electricBlue-DEFAULT font-medium transition-colors"
+              className="text-gray-600 hover:text-electricBlue font-medium transition-colors"
             >
               Players
             </Link>
@@ -91,7 +91,7 @@ const Header = () => {
             {/* Cart */}
             <Link
               to="/cart"
-              className="relative text-gray-600 hover:text-electricBlue-DEFAULT transition-colors"
+              className="relative text-gray-600 hover:text-electricBlue transition-colors"
             >
               <svg
                 className="w-6 h-6"
@@ -107,7 +107,7 @@ const Header = () => {
                 />
               </svg>
               {cartItemCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-limeGreen-DEFAULT text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white border border-red-500 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
                   {cartItemCount}
                 </span>
               )}
@@ -118,7 +118,7 @@ const Header = () => {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center space-x-2 text-gray-700 hover:text-electricBlue-DEFAULT focus:outline-none py-2 font-medium"
+                  className="flex items-center space-x-2 text-gray-700 hover:text-electricBlue focus:outline-none py-2 font-medium"
                 >
                   <span className="hidden sm:inline">
                     Welcome, {user?.name || user?.email}
@@ -144,21 +144,21 @@ const Header = () => {
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl py-2 z-50 transform origin-top-right border border-gray-100 ring-1 ring-black ring-opacity-5">
                     <Link
                       to="/players"
-                      className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-electricBlue-DEFAULT transition-colors"
+                      className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-electricBlue transition-colors"
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       Find Players
                     </Link>
                     <Link
                       to="/orders"
-                      className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-electricBlue-DEFAULT transition-colors"
+                      className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-electricBlue transition-colors"
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       My Orders
                     </Link>
                     <Link
                       to="/profile"
-                      className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-electricBlue-DEFAULT transition-colors"
+                      className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-electricBlue transition-colors"
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       My Profile
@@ -166,7 +166,7 @@ const Header = () => {
                     {user?.role === "ADMIN" && (
                       <Link
                         to="/admin"
-                        className="block px-4 py-2.5 text-sm text-electricBlue-DEFAULT hover:bg-blue-50 font-semibold"
+                        className="block px-4 py-2.5 text-sm text-electricBlue hover:bg-blue-50 font-semibold"
                         onClick={() => setIsDropdownOpen(false)}
                       >
                         Admin Dashboard
@@ -186,13 +186,13 @@ const Header = () => {
               <div className="flex items-center  space-x-4">
                 <Link
                   to="/login"
-                  className="text-gray-600 hover:text-electricBlue-DEFAULT font-medium transition-colors"
+                  className="text-gray-600 hover:text-electricBlue font-medium transition-colors"
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="px-5 py-2.5 text-gray-600 hover:text-electricBlue-DEFAULT font-medium transition-colors"
+                  className="px-5 py-2.5 text-gray-600 hover:text-electricBlue font-medium transition-colors"
                 >
                   Register
                 </Link>

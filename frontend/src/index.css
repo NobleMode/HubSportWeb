@@ -5,16 +5,16 @@
 /* Custom styles */
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family:
+    source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
 
 /* Custom utility classes */
@@ -34,4 +34,38 @@ code {
   .card {
     @apply bg-white rounded-lg shadow-md p-6;
   }
+}
+
+/* Dual Range Slider Styles */
+.range-slider-input {
+  @apply absolute top-0 left-0 w-full h-full appearance-none bg-transparent pointer-events-none z-20;
+}
+
+.range-slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  background-color: #2563eb; /* electricBlue.DEFAULT */
+  border: 2px solid white;
+  box-shadow:
+    0 1px 3px 0 rgb(0 0 0 / 0.1),
+    0 1px 2px -1px rgb(0 0 0 / 0.1);
+  cursor: pointer;
+  pointer-events: auto;
+  margin-top: -4px;
+}
+
+.range-slider-input::-moz-range-thumb {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  background-color: #2563eb; /* electricBlue.DEFAULT */
+  border: 2px solid white;
+  box-shadow:
+    0 1px 3px 0 rgb(0 0 0 / 0.1),
+    0 1px 2px -1px rgb(0 0 0 / 0.1);
+  cursor: pointer;
+  pointer-events: auto;
 }

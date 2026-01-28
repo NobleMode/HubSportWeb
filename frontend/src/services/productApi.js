@@ -1,4 +1,4 @@
-import { baseApi } from './baseApi';
+import { baseApi } from "./baseApi";
 
 /**
  * Product API
@@ -8,37 +8,40 @@ export const productApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getProducts: builder.query({
       query: (params) => ({
-        url: '/products',
-        params,
+        url: "/products",
+        params: {
+          ...params,
+        },
       }),
-      providesTags: ['Product'],
+      providesTags: ["Product"],
+      keepUnusedDataFor: 0, // Disable caching to ensure fresh results on filter change
     }),
     getProductById: builder.query({
       query: (id) => `/products/${id}`,
-      providesTags: (result, error, id) => [{ type: 'Product', id }],
+      providesTags: (result, error, id) => [{ type: "Product", id }],
     }),
     createProduct: builder.mutation({
       query: (productData) => ({
-        url: '/products',
-        method: 'POST',
+        url: "/products",
+        method: "POST",
         body: productData,
       }),
-      invalidatesTags: ['Product'],
+      invalidatesTags: ["Product"],
     }),
     updateProduct: builder.mutation({
       query: ({ id, ...productData }) => ({
         url: `/products/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: productData,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'Product', id }],
+      invalidatesTags: (result, error, { id }) => [{ type: "Product", id }],
     }),
     deleteProduct: builder.mutation({
       query: (id) => ({
         url: `/products/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['Product'],
+      invalidatesTags: ["Product"],
     }),
   }),
 });

@@ -1,4 +1,4 @@
-import productService from '../services/productService.js';
+import productService from "../services/productService.js";
 
 /**
  * Product Controller
@@ -11,12 +11,16 @@ class ProductController {
    */
   async getAllProducts(req, res, next) {
     try {
-      const { type, category, isActive } = req.query;
-      
+      const { type, category, isActive, search, minPrice, maxPrice } =
+        req.query;
+
       const products = await productService.getAllProducts({
         type,
         category,
-        isActive: isActive === 'false' ? false : true,
+        isActive: isActive === "false" ? false : true,
+        search,
+        minPrice,
+        maxPrice,
       });
 
       res.status(200).json({
@@ -57,7 +61,7 @@ class ProductController {
 
       res.status(201).json({
         success: true,
-        message: 'Product created successfully',
+        message: "Product created successfully",
         data: product,
       });
     } catch (error) {
@@ -76,7 +80,7 @@ class ProductController {
 
       res.status(200).json({
         success: true,
-        message: 'Product updated successfully',
+        message: "Product updated successfully",
         data: product,
       });
     } catch (error) {
@@ -95,7 +99,7 @@ class ProductController {
 
       res.status(200).json({
         success: true,
-        message: 'Product deleted successfully',
+        message: "Product deleted successfully",
       });
     } catch (error) {
       next(error);

@@ -26,6 +26,7 @@ enum ProductItemStatus {
   AVAILABLE
   RENTING
   MAINTENANCE
+  LOST
 }
 
 enum OrderStatus {
@@ -140,6 +141,14 @@ model OrderItem {
   depositFee    Float        @default(0)
   rentalDays    Int? // For rental items
   isRental      Boolean      @default(false)
+  
+  // Return & Damage Info
+  returnedAt    DateTime?
+  condition     String?      // GOOD, DAMAGED, LOST
+  damageFee     Float?       @default(0)
+  lateFee       Float?       @default(0)
+  notes         String?      // Notes on return condition
+
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 

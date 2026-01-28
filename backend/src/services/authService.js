@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+// import bcrypt from "bcrypt";
 import prisma from "../config/database.js";
 import { generateToken, generateRefreshToken } from "../utils/jwtUtils.js";
 import { ROLE_SCOPES } from "../config/permissions.js";
@@ -23,8 +23,8 @@ class AuthService {
       throw new Error("User with this email already exists");
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Password already hashed (HMAC)
+    const hashedPassword = password;
 
     // Create user
     const user = await prisma.user.create({
@@ -84,8 +84,8 @@ class AuthService {
       throw new Error("Invalid email or password");
     }
 
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    // Verify password (direct compare because both are HMAC hashes)
+    const isPasswordValid = password === user.password;
 
     if (!isPasswordValid) {
       throw new Error("Invalid email or password");

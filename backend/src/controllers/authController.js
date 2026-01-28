@@ -1,5 +1,4 @@
-import authService from '../services/authService.js';
-import { decryptData } from '../utils/security.js';
+import authService from "../services/authService.js";
 
 /**
  * Auth Controller
@@ -18,21 +17,29 @@ class AuthController {
       if (!email || !password) {
         return res.status(400).json({
           success: false,
-          message: 'Email and password are required',
+          message: "Email and password are required",
         });
       }
 
-      // Decrypt password
-      const decryptedPassword = decryptData(password);
+      // Password already hashed by FE (HMAC), but we stick to the flow of verify/store
+      // In this unified flow:
+      // FE sends: HMAC(password, key)
+      // BE receives: hashed_password
+      // BE stores: hashed_password directly (as per user request "apply generally HMAC and key")
 
-      const { user, accessToken, refreshToken } = await authService.register({ email, password: decryptedPassword, role, name });
+      const { user, accessToken, refreshToken } = await authService.register({
+        email,
+        password,
+        role,
+        name,
+      });
 
       // Set Refresh Token Cookie
       this.setTokenCookie(res, refreshToken);
 
       res.status(201).json({
         success: true,
-        message: 'User registered successfully',
+        message: "User registered successfully",
         data: { user, token: accessToken },
       });
     } catch (error) {
@@ -52,21 +59,22 @@ class AuthController {
       if (!email || !password) {
         return res.status(400).json({
           success: false,
-          message: 'Email and password are required',
+          message: "Email and password are required",
         });
       }
 
-      // Decrypt password
-      const decryptedPassword = decryptData(password);
-
-      const { user, accessToken, refreshToken } = await authService.login(email, decryptedPassword);
+      // Password is sent as HMAC hash from FE
+      const { user, accessToken, refreshToken } = await authService.login(
+        email,
+        password,
+      );
 
       // Set Refresh Token Cookie
       this.setTokenCookie(res, refreshToken);
 
       res.status(200).json({
         success: true,
-        message: 'Login successful',
+        message: "Login successful",
         data: { user, token: accessToken },
       });
     } catch (error) {
@@ -80,31 +88,35 @@ class AuthController {
    */
   async refreshToken(req, res, next) {
     try {
-        const refreshToken = req.cookies.refreshToken;
+      const refreshToken = req.cookies.refreshToken;
 
-        if (!refreshToken) {
-            return res.status(401).json({
-                success: false,
-                message: 'No refresh token provided',
-            });
+      if (!refreshToken) {
+        return res.status(401).json({
+          success: false,
+          message: "No refresh token provided",
+        });
       }
 
-        const { accessToken, refreshToken: newRefreshToken, user } = await authService.refreshToken(refreshToken);
+      const {
+        accessToken,
+        refreshToken: newRefreshToken,
+        user,
+      } = await authService.refreshToken(refreshToken);
 
-        // Set New Refresh Token Cookie
+      // Set New Refresh Token Cookie
       this.setTokenCookie(res, newRefreshToken);
 
-        res.status(200).json({
-            success: true,
-            data: { token: accessToken, user },
-        });
+      res.status(200).json({
+        success: true,
+        data: { token: accessToken, user },
+      });
     } catch (error) {
-         // Clear cookie if refresh fails
-        res.clearCookie('refreshToken');
-        res.status(401).json({
-            success: false,
-            message: error.message || 'Invalid refresh token',
-        });
+      // Clear cookie if refresh fails
+      res.clearCookie("refreshToken");
+      res.status(401).json({
+        success: false,
+        message: error.message || "Invalid refresh token",
+      });
     }
   }
 
@@ -113,38 +125,38 @@ class AuthController {
    * POST /api/auth/logout
    */
   async logout(req, res, next) {
-      try {
-          const refreshToken = req.cookies.refreshToken;
-          if (refreshToken) {
-              await authService.logout(refreshToken);
-          }
-          
-          Object.keys(req.cookies).forEach(cookieName => {
-            res.clearCookie(cookieName);
-          });
-
-          res.status(200).json({
-              success: true,
-              message: 'Logged out successfully',
-          });
-      } catch (error) {
-          next(error);
+    try {
+      const refreshToken = req.cookies.refreshToken;
+      if (refreshToken) {
+        await authService.logout(refreshToken);
       }
+
+      Object.keys(req.cookies).forEach((cookieName) => {
+        res.clearCookie(cookieName);
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Logged out successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 
   /**
    * Helper to set Token Cookie
    */
   setTokenCookie(res, token) {
-      const isProduction = process.env.NODE_ENV === 'production';
-      const cookieOptions = {
-          httpOnly: true,
-          secure: isProduction, // HTTPS required in Prod
-          expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-          sameSite: isProduction ? 'none' : 'lax', // 'none' allows cross-domain in Prod, 'lax' is better for localhost
-      };
-      
-      res.cookie('refreshToken', token, cookieOptions);
+    const isProduction = process.env.NODE_ENV === "production";
+    const cookieOptions = {
+      httpOnly: true,
+      secure: isProduction, // HTTPS required in Prod
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      sameSite: isProduction ? "none" : "lax", // 'none' allows cross-domain in Prod, 'lax' is better for localhost
+    };
+
+    res.cookie("refreshToken", token, cookieOptions);
   }
 
   /**
@@ -171,11 +183,15 @@ class AuthController {
   async updateProfile(req, res, next) {
     try {
       const { name, phone, address } = req.body;
-      const user = await authService.updateProfile(req.user.id, { name, phone, address });
+      const user = await authService.updateProfile(req.user.id, {
+        name,
+        phone,
+        address,
+      });
 
       res.status(200).json({
         success: true,
-        message: 'Profile updated successfully',
+        message: "Profile updated successfully",
         data: user,
       });
     } catch (error) {

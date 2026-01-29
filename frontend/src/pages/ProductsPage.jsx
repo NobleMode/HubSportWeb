@@ -7,6 +7,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "../features/cart/cartSlice";
 import { selectIsAuthenticated } from "../features/auth/authSlice";
 import Button from "../components/common/Button";
+import { useToast } from "../context/ToastContext";
+import QuickRentModal from "../components/common/QuickRentModal";
 
 /**
  * Products Page
@@ -63,6 +65,10 @@ const ProductsPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const { showToast } = useToast();
+  
+  // Quick Rent State
+  const [quickRentProduct, setQuickRentProduct] = useState(null);
 
   const handleAddToCart = (product) => {
     dispatch(
@@ -71,11 +77,18 @@ const ProductsPage = () => {
         name: product.name,
         type: product.type,
         salePrice: product.salePrice,
-        rentalPrice: product.rentalPrice,
+        rentalPrice: 0, 
         depositFee: product.depositFee,
         quantity: 1,
       }),
     );
+     showToast("Added to cart successfully", "success");
+  };
+
+  const handleQuickRentAddToCart = (cartItem) => {
+    dispatch(addToCart(cartItem));
+    showToast("Added to cart successfully", "success");
+    setQuickRentProduct(null);
   };
 
   if (isLoading) {
@@ -522,41 +535,69 @@ const ProductsPage = () => {
 
                     {/* Dual Buttons */}
                     <div className="grid grid-cols-2 gap-2">
+                      {/* Button 1: Rent (Priority) or Buy */}
                       <div className="col-span-1">
-                        <Button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (!isAuthenticated) navigate("/login");
-                            else handleAddToCart(product);
-                          }}
-                          className="w-full !py-2 !px-0 text-sm bg-electricBlue hover:bg-blue-700"
-                        >
-                          <span className="flex items-center justify-center gap-1">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-4 w-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
+                        {product.rentalPrice > 0 ? (
+                           <Button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (!isAuthenticated) { navigate("/login"); return; }
+                                setQuickRentProduct(product);
+                              }}
+                              className="w-full !py-2 !px-0 text-sm bg-electricBlue hover:bg-blue-700"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                              />
-                            </svg>
-                            Add
-                          </span>
-                        </Button>
+                              <span className="flex items-center justify-center gap-1">
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Rent
+                              </span>
+                           </Button>
+                        ) : (
+                           <Button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (!isAuthenticated) { navigate("/login"); return; }
+                                handleAddToCart(product);
+                              }}
+                              className="w-full !py-2 !px-0 text-sm bg-limeGreen hover:bg-lime-700 text-white"
+                            >
+                              <span className="flex items-center justify-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                Buy
+                              </span>
+                           </Button>
+                        )}
                       </div>
+
+                      {/* Button 2: Buy (If both) or Details */}
                       <div className="col-span-1">
-                        <Link
-                          to={`/products/${product.id}`}
-                          className="block w-full text-center py-2 border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-                        >
-                          Details
-                        </Link>
+                        {product.rentalPrice > 0 && product.salePrice > 0 ? (
+                            <Button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (!isAuthenticated) { navigate("/login"); return; }
+                                handleAddToCart(product);
+                              }}
+                              className="w-full !py-2 !px-0 text-sm bg-limeGreen hover:bg-lime-700 text-white"
+                            >
+                              <span className="flex items-center justify-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                </svg>
+                                Buy
+                              </span>
+                           </Button>
+                        ) : (
+                            <Link
+                              to={`/products/${product.id}`}
+                              className="block w-full text-center py-2 border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                            >
+                              Details
+                            </Link>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -565,7 +606,7 @@ const ProductsPage = () => {
             ))}
           </div>
 
-          {products.length === 0 && (
+          {(products.length === 0) && (
             <div className="flex flex-col items-center justify-center py-24 text-center">
               <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
                 <svg
@@ -593,6 +634,13 @@ const ProductsPage = () => {
           )}
         </main>
       </div>
+
+      <QuickRentModal 
+        isOpen={!!quickRentProduct} 
+        product={quickRentProduct} 
+        onClose={() => setQuickRentProduct(null)} 
+        onAddToCart={handleQuickRentAddToCart} 
+      />
     </div>
   );
 };

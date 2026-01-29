@@ -12,6 +12,7 @@ import { useCreateOrderMutation } from '../services/orderApi';
 import { useGetProfileQuery } from '../services/authApi';
 import Button from '../components/common/Button';
 import { getImageUrl } from '../utils/imageUtils';
+import { useToast } from '../context/ToastContext';
 
 /**
  * Checkout Page
@@ -65,6 +66,8 @@ const CheckoutPage = () => {
   const finalTotal = totalAmount + totalDeposit;
   const isWalletInsufficient = formData.paymentMethod === 'WALLET' && user?.balance < finalTotal;
 
+  const { showToast } = useToast();
+
   const steps = [
     { number: 1, title: "Shipping Address" },
     { number: 2, title: "Payment Method" },
@@ -84,7 +87,6 @@ const CheckoutPage = () => {
       navigate("/cart");
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isWalletInsufficient) return;
@@ -98,14 +100,26 @@ const CheckoutPage = () => {
 
     try {
       const orderData = {
-        items: cartItems.map((item) => ({
-          productId: item.productId || item.id,
-          quantity: item.quantity,
-          price: item.price || item.salePrice || item.rentalPrice,
-          depositFee: item.depositFee,
-          type: item.type,
-          rentalDays: item.rentalDays,
-        })),
+        items: cartItems.map((item) => {
+          // Determine price based on specific type if price is not explicitly set
+          let finalPrice = item.price;
+          if (!finalPrice) {
+            if (item.type === 'RENTAL') {
+              finalPrice = item.rentalPrice;
+            } else {
+              finalPrice = item.salePrice;
+            }
+          }
+
+          return {
+            productId: item.productId || item.id, // Handle both 'id' as productId or 'productId' field
+            quantity: item.quantity,
+            price: finalPrice,
+            depositFee: item.depositFee,
+            type: item.type,
+            rentalDays: item.rentalDays,
+          };
+        }),
         totalAmount,
         totalDeposit,
         paymentMethod: formData.paymentMethod,
@@ -119,6 +133,7 @@ const CheckoutPage = () => {
       const response = await createOrder(orderData).unwrap();
 
       dispatch(clearCart());
+      showToast('Order placed successfully!', 'success');
       console.log("chạy tới đây", response);
       navigate("/order-success", {
         state: {
@@ -133,12 +148,12 @@ const CheckoutPage = () => {
       console.log("chạy tới đây1", response);
     } catch (err) {
       console.error("Failed to place order:", err);
-
-      // Navigate to fail page with error message
       const errorMessage =
         err?.data?.message ||
         err?.message ||
         "An unexpected error occurred while processing your order. Please try again.";
+      showToast(errorMessage, 'error');
+      // Navigate to fail page with error message
       navigate("/order-fail", {
         state: { errorMessage },
       });

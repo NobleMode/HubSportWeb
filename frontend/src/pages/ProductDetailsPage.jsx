@@ -10,7 +10,7 @@ import { addToCart } from "../features/cart/cartSlice";
 import { selectIsAuthenticated } from "../features/auth/authSlice";
 import Button from "../components/common/Button";
 import LoadingSpinner from "../components/common/LoadingSpinner";
-import Toast from "../components/common/Toast";
+import { useToast } from "../context/ToastContext";
 
 /**
  * Product Details Page
@@ -37,7 +37,7 @@ const ProductDetailsPage = () => {
   const [showUpsell, setShowUpsell] = useState(false);
 
   // Toast State
-  const [toast, setToast] = useState(null);
+  const { showToast } = useToast();
 
   // Fetch related products with the same category
   const { data: relatedProductsData } = useGetProductsQuery(
@@ -205,18 +205,12 @@ const ProductDetailsPage = () => {
       }),
     );
     // Visual feedback
-    setToast({ message: "Added to cart successfully!", type: "success" });
+    showToast("Added to cart successfully!", "success");
   };
 
   return (
     <div className="bg-gray-50 min-h-screen py-8">
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
+
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Breadcrumb / Back */}
         <button

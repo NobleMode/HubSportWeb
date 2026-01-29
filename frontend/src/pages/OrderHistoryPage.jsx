@@ -129,6 +129,7 @@ const OrderHistoryPage = () => {
                                 {order.shippingAddress && (
                                     <div className="mt-6 pt-4 border-t border-gray-100 text-sm text-gray-600">
                                         <p><span className="font-medium">Shipping to:</span> {order.shippingAddress}</p>
+                                        {order.billingAddress && <p className="mt-1"><span className="font-medium">Billing to:</span> {order.billingAddress}</p>}
                                         {order.notes && <p className="mt-1"><span className="font-medium">Note:</span> {order.notes}</p>}
                                     </div>
                                 )}

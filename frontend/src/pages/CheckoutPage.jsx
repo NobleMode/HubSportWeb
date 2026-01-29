@@ -442,7 +442,7 @@ const CheckoutPage = () => {
                         </div>
                       </div>
                     </div>
-                    />
+
                   </div>
 
                   {/* Order Note */}

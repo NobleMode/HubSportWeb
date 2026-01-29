@@ -137,6 +137,7 @@ model Order {
   totalDeposit    Float       @default(0)
   paymentMethod   String?
   shippingAddress String?
+  billingAddress  String?
   notes           String?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt

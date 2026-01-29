@@ -9,7 +9,7 @@ class OrderService {
    * Create a new order
    */
   async createOrder(userId, orderData) {
-    const { items, shippingAddress, notes, paymentMethod, totalAmount, totalDeposit } = orderData;
+    const { items, shippingAddress, billingAddress, notes, paymentMethod, totalAmount, totalDeposit } = orderData;
     const finalTotal = totalAmount + totalDeposit;
 
     // Start a transaction to ensure data consistency
@@ -47,6 +47,7 @@ class OrderService {
           totalDeposit,
           paymentMethod,
           shippingAddress,
+          billingAddress,
           notes,
           orderItems: {
             create: items.map(item => ({

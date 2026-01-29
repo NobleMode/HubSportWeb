@@ -4,6 +4,7 @@ import {
   useUpdateProfileMutation,
 } from "../services/authApi";
 import { useUpgradeToExpertMutation, useUpdateExpertProfileMutation } from "../services/userApi";
+import { useGetMyTransactionsQuery } from '../services/transactionApi';
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import Button from "../components/common/Button";
 
@@ -17,8 +18,14 @@ const ProfilePage = () => {
   const [upgradeToExpert, { isLoading: isUpgrading }] =
     useUpgradeToExpertMutation();
   const [updateExpertProfile, { isLoading: isExpertUpdating }] = useUpdateExpertProfileMutation();
+  
+  // Transaction Query
+  const { data: transactionResponse, isLoading: isTransactionsLoading } = useGetMyTransactionsQuery();
+  const transactions = transactionResponse?.data || [];
 
   const user = userResponse?.data;
+  
+  const [activeTab, setActiveTab] = useState("profile"); // 'profile' | 'transactions'
 
   const [formData, setFormData] = useState({
     name: "",
@@ -138,8 +145,7 @@ const ProfilePage = () => {
          setMessage("Expert Profile updated successfully.");
       } else {
          result = await upgradeToExpert(expertFormData).unwrap();
-         const { user, token } = result.data;
-         dispatch(setCredentials({ user, token }));
+         // const { user, token } = result.data; // token update might need dispatch if auth slice supports it
          setMessage("Congratulations! You are now an Expert.");
       }
 
@@ -174,6 +180,22 @@ const ProfilePage = () => {
             </span>
           )}
         </div>
+        
+        {/* Tab Navigation */}
+        <div className="flex border-b border-gray-200">
+             <button
+                className={`py-3 px-6 font-medium focus:outline-none ${activeTab === 'profile' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setActiveTab('profile')}
+             >
+                Information
+             </button>
+             <button
+                className={`py-3 px-6 font-medium focus:outline-none ${activeTab === 'transactions' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setActiveTab('transactions')}
+             >
+                Transaction History
+             </button>
+        </div>
 
         <div className="p-6">
           {message && (
@@ -188,127 +210,177 @@ const ProfilePage = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Sidebar / Read-only info */}
-            <div className="space-y-6">
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">
-                  Account Details
-                </h3>
-                <div className="space-y-3">
-                  <div>
-                    <span className="block text-xs text-gray-400">Email</span>
-                    <span className="font-medium text-gray-800 break-words">
-                      {formData.email}
-                    </span>
+          {activeTab === 'profile' ? (
+              /* Profile Tab Content */
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {/* Sidebar / Read-only info */}
+                <div className="space-y-6">
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">
+                      Account Details
+                    </h3>
+                    <div className="space-y-3">
+                      <div>
+                        <span className="block text-xs text-gray-400">Email</span>
+                        <span className="font-medium text-gray-800 break-words">
+                          {formData.email}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-xs text-gray-400">Balance</span>
+                        <span className="font-bold text-green-600">
+                          {new Intl.NumberFormat("vi-VN", {
+                            style: "currency",
+                            currency: "VND",
+                          }).format(formData.balance)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-xs text-gray-400">
+                          Account Type
+                        </span>
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                            formData.role === "ADMIN"
+                              ? "bg-purple-100 text-purple-800"
+                              : formData.role === "EXPERT"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-green-100 text-green-800"
+                          }`}
+                        >
+                          {formData.role}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <span className="block text-xs text-gray-400">Balance</span>
-                    <span className="font-bold text-green-600">
-                      {new Intl.NumberFormat("vi-VN", {
-                        style: "currency",
-                        currency: "VND",
-                      }).format(formData.balance)}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="block text-xs text-gray-400">
-                      Account Type
-                    </span>
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                        formData.role === "ADMIN"
-                          ? "bg-purple-100 text-purple-800"
-                          : formData.role === "EXPERT"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-green-100 text-green-800"
-                      }`}
-                    >
-                      {formData.role}
-                    </span>
-                  </div>
+
+                  {/* Upgrade Button for Customers */}
+                  {formData.role === "CUSTOMER" && (
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 text-center">
+                      <h3 className="text-blue-800 font-semibold mb-2">
+                        Want to earn money?
+                      </h3>
+                      <p className="text-sm text-blue-600 mb-4">
+                        Become an expert and offer your services to others.
+                      </p>
+                      <Button
+                        onClick={() => setIsUpgradeModalOpen(true)}
+                        className="w-full"
+                      >
+                        Register as Expert
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Main Form */}
+                <div className="md:col-span-2">
+                  <h2 className="text-xl font-semibold mb-4 text-gray-800">
+                    Personal Information
+                  </h2>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Full Name
+                        </label>
+                        <input
+                          type="text"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleChange}
+                          className="input-field w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Phone Number
+                        </label>
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleChange}
+                          className="input-field w-full"
+                          placeholder="+84..."
+                        />
+                      </div>
+
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Address
+                        </label>
+                        <textarea
+                          name="address"
+                          value={formData.address}
+                          onChange={handleChange}
+                          rows="3"
+                          className="input-field w-full"
+                          placeholder="123 Street, District, City..."
+                        ></textarea>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 flex justify-end">
+                      <Button type="submit" disabled={isUpdating}>
+                        {isUpdating ? <LoadingSpinner size="sm" /> : "Save Changes"}
+                      </Button>
+                    </div>
+                  </form>
                 </div>
               </div>
-
-              {/* Upgrade Button for Customers */}
-              {formData.role === "CUSTOMER" && (
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 text-center">
-                  <h3 className="text-blue-800 font-semibold mb-2">
-                    Want to earn money?
-                  </h3>
-                  <p className="text-sm text-blue-600 mb-4">
-                    Become an expert and offer your services to others.
-                  </p>
-                  <Button
-                    onClick={() => setIsUpgradeModalOpen(true)}
-                    className="w-full"
-                  >
-                    Register as Expert
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* Main Form */}
-            <div className="md:col-span-2">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800">
-                Personal Information
-              </h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="input-field w-full"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="input-field w-full"
-                      placeholder="+84..."
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Address
-                    </label>
-                    <textarea
-                      name="address"
-                      value={formData.address}
-                      onChange={handleChange}
-                      rows="3"
-                      className="input-field w-full"
-                      placeholder="123 Street, District, City..."
-                    ></textarea>
-                  </div>
-                </div>
-
-                <div className="pt-4 flex justify-end">
-                  <Button type="submit" disabled={isUpdating}>
-                    {isUpdating ? <LoadingSpinner size="sm" /> : "Save Changes"}
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </div>
+          ) : (
+             /* Transaction History Tab */
+             <div className="space-y-4">
+                 <h2 className="text-xl font-semibold mb-4 text-gray-800">Transaction History</h2>
+                 
+                 {isTransactionsLoading ? (
+                     <div className="flex justify-center p-8"><LoadingSpinner /></div>
+                 ) : transactions.length === 0 ? (
+                     <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">No transactions found.</div>
+                 ) : (
+                     <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {transactions.map((tx) => (
+                                    <tr key={tx.id}>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {new Date(tx.createdAt).toLocaleString()}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                ${tx.type === 'DEPOSIT' || tx.type === 'REFUND' || tx.type === 'INCOME' 
+                                                ? 'bg-green-100 text-green-800' 
+                                                : 'bg-red-100 text-red-800'}`}>
+                                                {tx.type}
+                                            </span>
+                                        </td>
+                                        <td className={`px-6 py-4 whitespace-nowrap text-sm font-bold ${tx.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                            {tx.amount > 0 ? '+' : ''}{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(tx.amount)}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {tx.description}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                     </div>
+                 )}
+             </div>
+          )}
         
-          {/* Expert Profile View */}
-          {formData.role === "EXPERT" && user?.expertProfile && (
+          {/* Expert Profile View - Only show in Profile Tab */}
+          {activeTab === 'profile' && formData.role === "EXPERT" && user?.expertProfile && (
             <div className="mt-8 border-t pt-8">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">Expert Profile</h2>

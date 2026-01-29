@@ -21,6 +21,7 @@ const ProductsPage = () => {
     maxPrice: searchParams.get("maxPrice") || "",
     category: searchParams.get("category") || "",
     type: searchParams.get("type") || "",
+    sortBy: searchParams.get("sortBy") || "newest",
   });
 
   const { data, isLoading, error } = useGetProductsQuery({
@@ -97,6 +98,46 @@ const ProductsPage = () => {
   }
 
   const products = data?.data || [];
+
+  // Sort products based on selected option
+  const getSortedProducts = () => {
+    const productsCopy = [...products];
+
+    switch (filters.sortBy) {
+      case "price-low-high":
+        return productsCopy.sort((a, b) => {
+          const priceA = a.rentalPrice || a.salePrice || 0;
+          const priceB = b.rentalPrice || b.salePrice || 0;
+          return priceA - priceB;
+        });
+
+      case "price-high-low":
+        return productsCopy.sort((a, b) => {
+          const priceA = a.rentalPrice || a.salePrice || 0;
+          const priceB = b.rentalPrice || b.salePrice || 0;
+          return priceB - priceA;
+        });
+
+      case "most-popular":
+        // Sort by stock quantity or a popularity metric if available
+        return productsCopy.sort((a, b) => {
+          const popularityA = a.stockQuantity || 0;
+          const popularityB = b.stockQuantity || 0;
+          return popularityB - popularityA;
+        });
+
+      case "newest":
+      default:
+        // Sort by createdAt or id (assuming higher id = newer)
+        return productsCopy.sort((a, b) => {
+          const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+          const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+          return dateB - dateA;
+        });
+    }
+  };
+
+  const sortedProducts = getSortedProducts();
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
@@ -333,11 +374,19 @@ const ProductsPage = () => {
               Showing {products.length} of {products.length} products
             </span>
             <div className="relative">
-              <select className="appearance-none bg-white border border-gray-200 text-gray-700 py-2 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-gray-500 cursor-pointer text-sm font-medium">
-                <option>Newest</option>
-                <option>Price: Low to High</option>
-                <option>Price: High to Low</option>
-                <option>Most Popular</option>
+              <select
+                value={filters.sortBy}
+                onChange={(e) =>
+                  handleFilterChange({
+                    target: { name: "sortBy", value: e.target.value },
+                  })
+                }
+                className="appearance-none bg-white border border-gray-200 text-gray-700 py-2 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-gray-500 cursor-pointer text-sm font-medium"
+              >
+                <option value="newest">Newest</option>
+                <option value="price-low-high">Price: Low to High</option>
+                <option value="price-high-low">Price: High to Low</option>
+                <option value="most-popular">Most Popular</option>
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                 <svg
@@ -353,7 +402,7 @@ const ProductsPage = () => {
 
           {/* Products Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((product) => (
+            {sortedProducts.map((product) => (
               <div
                 key={product.id}
                 className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col h-full transform hover:-translate-y-1 relative"

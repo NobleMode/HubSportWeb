@@ -30,6 +30,7 @@ import ProductDetailsPage from "./pages/ProductDetailsPage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
+import OrderFailPage from "./pages/OrderFailPage";
 import PlayersPage from "./pages/PlayersPage";
 import PlayerDetailsPage from "./pages/PlayerDetailsPage";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
@@ -105,6 +106,7 @@ function App() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/order-success" element={<OrderSuccessPage />} />
+            <Route path="/order-fail" element={<OrderFailPage />} />
             <Route path="/players" element={<PlayersPage />} />
             <Route path="/players/:id" element={<PlayerDetailsPage />} />
 

@@ -2,16 +2,16 @@ import crypto from 'crypto';
 import CryptoJS from 'crypto-js';
 
 const API_URL = 'http://localhost:5000/api';
-const ADMIN_EMAIL = 'admin@sporthub.vn';
-const ADMIN_PASS = 'admin123';
-const CUST_EMAIL = 'customer@example.com';
-const CUST_PASS = 'customer123';
+const ADMIN_EMAIL = 'admin@gmail.com';
+const ADMIN_PASS = '123456';
+const CUST_EMAIL = 'customer@gmail.com';
+const CUST_PASS = '123456';
 const ENCRYPTION_KEY = '50de886e0210faa96fa333f435c4ea7e947cb13ed1b001487e2d25a3491be3d2aa97f7c143f366b187ee39d9386bf84dd082a903999aeb65e776808eb5f34db0';
 
 // Match Frontend Logic: SHA256 -> AES
+// Match Frontend Logic: HMAC-SHA256
 const encryptPassword = (password) => {
-  const hashedData = crypto.createHash('sha256').update(password).digest('hex');
-  return CryptoJS.AES.encrypt(hashedData, ENCRYPTION_KEY).toString();
+  return crypto.createHmac('sha256', ENCRYPTION_KEY).update(password).digest('hex');
 };
 
 async function testLogin(role, email, password) {

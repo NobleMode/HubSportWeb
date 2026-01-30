@@ -63,7 +63,9 @@ const CheckoutPage = () => {
     }));
   };
 
-  const finalTotal = totalAmount + totalDeposit;
+  const shippingFee = 50000;
+  const tax = Math.round((totalAmount + totalDeposit) * 0.1);
+  const finalTotal = totalAmount + totalDeposit + shippingFee + tax;
   const isWalletInsufficient = formData.paymentMethod === 'WALLET' && user?.balance < finalTotal;
 
   const { showToast } = useToast();
@@ -162,8 +164,7 @@ const CheckoutPage = () => {
     }
   };
 
-  const shippingFee = 50000;
-  const tax = Math.round((totalAmount + totalDeposit) * 0.1);
+
 
   return (
     <div className="bg-gray-50 min-h-screen py-8">
@@ -443,106 +444,6 @@ const CheckoutPage = () => {
                       </div>
                     </div>
 
-                  </div>
-
-                  {/* Order Note */}
-                  <div className="mt-8">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Order Note (Optional)
-                    </label>
-                    <textarea
-                      name="note"
-                      value={formData.note}
-                      onChange={handleChange}
-                      rows="3"
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Notes about your order, e.g. special notes for delivery."
-                    ></textarea>
-                  </div>
-
-                  {/* QR Code Display */}
-                  {formData.paymentMethod === "QR" && (
-                    <div className="mt-8 bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
-                      <h3 className="font-bold text-lg text-gray-900 mb-4 text-center">
-                        Scan QR Code to Pay
-                      </h3>
-                      <div className="flex flex-col items-center">
-                        {/* QR Code Image - You can replace this with actual QR code */}
-                        <div className="bg-white p-4 rounded-lg shadow-md mb-4">
-                          <div className="w-64 h-64 bg-gray-200 flex items-center justify-center rounded-lg">
-                            <svg
-                              className="w-48 h-48 text-gray-400"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={1}
-                                d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
-                              />
-                            </svg>
-                          </div>
-                        </div>
-
-                        {/* Bank Account Info */}
-                        <div className="w-full bg-white rounded-lg p-4 border border-blue-200">
-                          <h4 className="font-bold text-gray-900 mb-3 text-center">
-                            Bank Account Information
-                          </h4>
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Bank:</span>
-                              <span className="font-semibold text-gray-900">
-                                Vietcombank
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">
-                                Account Number:
-                              </span>
-                              <span className="font-semibold text-gray-900">
-                                1234567890
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">
-                                Account Name:
-                              </span>
-                              <span className="font-semibold text-gray-900">
-                                LUONG PHAM MINH
-                              </span>
-                            </div>
-                            <div className="flex justify-between border-t pt-2 mt-2">
-                              <span className="text-gray-600">Amount:</span>
-                              <span className="font-bold text-blue-600 text-lg">
-                                {(
-                                  totalAmount +
-                                  totalDeposit +
-                                  shippingFee +
-                                  tax
-                                ).toLocaleString("vi-VN")}
-                                đ
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Content:</span>
-                              <span className="font-semibold text-gray-900">
-                                HUBSPORT {user?.id || "ORDER"}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <p className="text-xs text-gray-600 text-center mt-4">
-                          Please transfer the exact amount and include the
-                          content above
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
                     {/* Wallet Payment */}
                     <div
                       className={`border-2 rounded-xl p-6 cursor-pointer transition-all ${
@@ -598,7 +499,7 @@ const CheckoutPage = () => {
                         </div>
                       </div>
                     </div>
-                  </div> {/* Closing div for space-y-4 */}
+                  </div>
 
                   {/* Order Note */}
                   <div className="mt-8">
@@ -672,12 +573,7 @@ const CheckoutPage = () => {
                             <div className="flex justify-between border-t pt-2 mt-2">
                               <span className="text-gray-600">Amount:</span>
                               <span className="font-bold text-blue-600 text-lg">
-                                {(
-                                  totalAmount +
-                                  totalDeposit +
-                                  shippingFee +
-                                  tax
-                                ).toLocaleString("vi-VN")}
+                                {finalTotal.toLocaleString("vi-VN")}
                                 đ
                               </span>
                             </div>
@@ -707,17 +603,6 @@ const CheckoutPage = () => {
                 </div>
               )}
 
-              <div className="mt-8">
-                 <Button
-                    type="submit"
-                    className="w-full py-3 text-lg"
-                    disabled={isSubmitting || isWalletInsufficient}
-                 >
-                     {isSubmitting ? 'Processing...' : `Place Order • ${finalTotal.toLocaleString('vi-VN')} VND`}
-                 </Button>
-             </div>
-          </form>
-        </div>
 
               {/* Step 3: Review Order */}
               {currentStep === 3 && (
@@ -783,7 +668,9 @@ const CheckoutPage = () => {
                       <p className="text-sm text-gray-700 font-medium">
                         {formData.paymentMethod === "QR"
                           ? "QR Code Payment"
-                          : "Cash on Delivery"}
+                          : formData.paymentMethod === "WALLET"
+                            ? "Wallet Payment"
+                            : "Cash on Delivery"}
                       </p>
                     </div>
 

@@ -8,6 +8,7 @@ async function main() {
 
   // 1. Clean up database
   console.log("🧹 Cleaning up database...");
+  await prisma.transaction.deleteMany();
   await prisma.review.deleteMany();
   await prisma.booking.deleteMany();
   await prisma.orderItem.deleteMany();

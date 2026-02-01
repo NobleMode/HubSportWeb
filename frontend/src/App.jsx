@@ -34,6 +34,7 @@ import OrderFailPage from "./pages/OrderFailPage";
 import PlayersPage from "./pages/PlayersPage";
 import PlayerDetailsPage from "./pages/PlayerDetailsPage";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
+import CouponManagementPage from "./pages/CouponManagementPage";
 
 import NotFoundPage from "./pages/NotFoundPage";
 
@@ -116,6 +117,14 @@ function App() {
               element={
                 <RoleGuard allowedRoles={["ADMIN"]}>
                   <AdminPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/admin/coupons"
+              element={
+                <RoleGuard allowedRoles={["ADMIN"]}>
+                  <CouponManagementPage />
                 </RoleGuard>
               }
             />

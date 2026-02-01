@@ -10,6 +10,7 @@ import {
 import { selectCurrentUser } from '../features/auth/authSlice';
 import { useCreateOrderMutation } from '../services/orderApi';
 import { useGetProfileQuery } from '../services/authApi';
+import { useValidateCouponMutation } from '../services/couponApi';
 import Button from '../components/common/Button';
 import { getImageUrl } from '../utils/imageUtils';
 import { useToast } from '../context/ToastContext';
@@ -52,7 +53,9 @@ const CheckoutPage = () => {
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponError, setCouponError] = useState("");
-  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [discountAmount, setDiscountAmount] = useState(0); 
+  const [validateCoupon, { isLoading: isApplyingCoupon }] = useValidateCouponMutation();
+  // Using imported hook from services/couponApi which needs to be imported
 
   // Redirect if cart is empty (but not during order submission)
   React.useEffect(() => {
@@ -70,8 +73,25 @@ const CheckoutPage = () => {
   };
 
   const shippingFee = 50000;
-  const tax = Math.round((totalAmount + totalDeposit) * 0.1);
-  const finalTotal = totalAmount + totalDeposit + shippingFee + tax;
+  const discount = discountAmount;
+  const subtotal = totalAmount + totalDeposit; 
+  // We calculate tax on the discounted amount? 
+  // Usually tax is on subtotal - discount. 
+  // But let's follow the previous logic first.
+  
+  // Previous logic:
+  // const tax = Math.round((totalAmount + totalDeposit) * 0.1);
+  // const finalTotal = totalAmount + totalDeposit + shippingFee + tax;
+
+  // New logic with coupon:
+  // Discount is calculated on (totalAmount + totalDeposit) usually.
+  
+  const subtotalAfterDiscount = Math.max(0, subtotal - discountAmount);
+  // Re-calculate tax based on discounted price? Or original?
+  // Usually tax is based on final price.
+  const tax = Math.round(subtotalAfterDiscount * 0.1);
+  const finalTotal = subtotalAfterDiscount + shippingFee + tax;
+
   const isWalletInsufficient = formData.paymentMethod === 'WALLET' && user?.balance < finalTotal;
 
   const { showToast } = useToast();
@@ -136,6 +156,7 @@ const CheckoutPage = () => {
         notes: formData.note
           ? `${formData.note} | Contact: ${formData.shippingFullName}, ${formData.shippingEmail}, ${formData.shippingPhone}`
           : `Contact: ${formData.shippingFullName}, ${formData.shippingEmail}, ${formData.shippingPhone}`,
+        couponCode: appliedCoupon ? appliedCoupon.code : null
       };
 
       const response = await createOrder(orderData).unwrap();
@@ -170,84 +191,36 @@ const CheckoutPage = () => {
     }
   };
 
-  // Mock coupon database - In production, this should be an API call
-  const availableCoupons = {
-    SAVE10: {
-      code: "SAVE10",
-      discount: 10,
-      type: "percentage",
-      description: "10% off",
-    },
-    SAVE20: {
-      code: "SAVE20",
-      discount: 20,
-      type: "percentage",
-      description: "20% off",
-    },
-    WELCOME: {
-      code: "WELCOME",
-      discount: 50000,
-      type: "fixed",
-      description: "50,000đ off",
-    },
-    FREESHIP: {
-      code: "FREESHIP",
-      discount: 50000,
-      type: "shipping",
-      description: "Free shipping",
-    },
-  };
-  const handleApplyCoupon = (e) => {
+  const handleApplyCoupon = async (e) => {
     e.preventDefault();
-    setIsApplyingCoupon(true);
+    if (!couponCode) return;
+    
     setCouponError("");
 
-    // Simulate API call
-    setTimeout(() => {
-      const coupon = availableCoupons[couponCode.toUpperCase()];
+    try {
+        const result = await validateCoupon({
+            code: couponCode,
+            orderTotal: totalAmount + totalDeposit
+        }).unwrap();
 
-      if (coupon) {
-        setAppliedCoupon(coupon);
-        setCouponError("");
-      } else {
-        setCouponError("Invalid coupon code");
+        if (result.isValid) {
+            setAppliedCoupon(result.coupon);
+            setDiscountAmount(result.discountAmount);
+            showToast('Coupon applied successfully', 'success');
+        }
+    } catch (err) {
         setAppliedCoupon(null);
-      }
-      setIsApplyingCoupon(false);
-    }, 500);
+        setDiscountAmount(0);
+        setCouponError(err?.data?.message || err?.message || "Invalid coupon");
+    }
   };
 
   const handleRemoveCoupon = () => {
     setAppliedCoupon(null);
     setCouponCode("");
     setCouponError("");
+    setDiscountAmount(0);
   };
-
-  // Calculate discount
-  const calculateDiscount = () => {
-    if (!appliedCoupon) return 0;
-
-    if (appliedCoupon.type === "percentage") {
-      return Math.round(
-        (totalAmount + totalDeposit) * (appliedCoupon.discount / 100),
-      );
-    } else if (appliedCoupon.type === "fixed") {
-      return appliedCoupon.discount;
-    } else if (appliedCoupon.type === "shipping") {
-      return shippingFee;
-    }
-    return 0;
-  };
-
-  const shippingFee = 50000;
-  const discount = calculateDiscount();
-  const subtotalBeforeTax =
-    totalAmount +
-    totalDeposit +
-    (appliedCoupon?.type === "shipping" ? 0 : shippingFee) -
-    discount;
-  const tax = Math.round(subtotalBeforeTax * 0.1);
-  const finalTotal = subtotalBeforeTax + tax;
 
 
   return (

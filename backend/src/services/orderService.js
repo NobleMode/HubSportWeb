@@ -1,4 +1,5 @@
 import prisma from '../config/database.js';
+import couponService from './couponService.js';
 
 /**
  * Order Service
@@ -9,8 +10,21 @@ class OrderService {
    * Create a new order
    */
   async createOrder(userId, orderData) {
-    const { items, shippingAddress, billingAddress, notes, paymentMethod, totalAmount, totalDeposit } = orderData;
-    const finalTotal = totalAmount + totalDeposit;
+    const { items, shippingAddress, billingAddress, notes, paymentMethod, totalAmount, totalDeposit, couponCode } = orderData;
+    let finalTotal = totalAmount + totalDeposit;
+    let discountAmount = 0;
+
+    // Validate Coupon if provided
+    if (couponCode) {
+        // We need to import CouponService dynamically or at the top. I'll use dynamic import to avoid circular dep if any, or just import at top if safe.
+        // Assuming OrderService is a singleton instance.
+        // Better to import at the top, I will add the import in a separate edit or assume it's added.
+        // For now, I will assume `couponService` is imported as `couponService` from `./couponService.js`
+        const validation = await couponService.validateCoupon(couponCode, userId, finalTotal);
+        discountAmount = validation.discountAmount;
+        // recalculate final total
+        finalTotal = validation.finalTotal; 
+    }
 
     // Start a transaction to ensure data consistency
     return await prisma.$transaction(async (tx) => {
@@ -49,6 +63,8 @@ class OrderService {
           shippingAddress,
           billingAddress,
           notes,
+          couponCode,
+          discountAmount,
           orderItems: {
             create: items.map(item => ({
               productId: item.productId,
@@ -64,8 +80,34 @@ class OrderService {
           orderItems: true,
         },
       });
+        
+      if (couponCode) {
+          // Record usage
+          // We can't use the external service here easily because we are in a transaction $transaction(async (tx) ...
+          // So we should replicate logic or pass tx to service. 
+          // For simplicity, let's just do the DB update here manually or make sure we handle it.
+          // The couponService.recordUsage uses a transaction internally too, which might conflict or need to be part of this one.
+          // Let's implement record usage logic here directly using `tx`.
+          
+          const coupon = await tx.coupon.findUnique({ where: { code: couponCode } });
+          await tx.couponUsage.create({
+              data: {
+                  couponId: coupon.id,
+                  userId,
+                  orderId: order.id
+              }
+          });
+          await tx.coupon.update({
+             where: { id: coupon.id },
+             data: { usageCount: { increment: 1 } }
+          });
+      }
 
       // 3. Update stock for SALE items and Status for RENTAL items
+      for (const item of items) {
+          // ... (existing logic) -> I will invoke a separate edit because this block is too large to replace safely if I want to keep the rest
+      }
+      // Re-adding the loop for now to be safe with the ReplacementContent
       for (const item of items) {
           if (item.type === 'SALE') {
               await tx.product.update({
@@ -73,10 +115,6 @@ class OrderService {
                   data: { stock: { decrement: item.quantity } }
               });
           } else if (item.type === 'RENTAL') {
-              // Mark specific ProductItems as RENTING (This is simplified, ideally we pick specific serialNumbers)
-              // For now, we assume we just need to track the Product availability broadly or pick available items.
-              // To notify "some" items are taken:
-              // Find available items
               const availableItems = await tx.productItem.findMany({
                   where: { productId: item.productId, status: 'AVAILABLE' },
                   take: item.quantity
@@ -86,7 +124,6 @@ class OrderService {
                   throw new Error(`Not enough available items for rental product: ${item.name}`);
               }
 
-              // Update them to RENTING
               await tx.productItem.updateMany({
                   where: { id: { in: availableItems.map(i => i.id) } },
                   data: { status: 'RENTING' }

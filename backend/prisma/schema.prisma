@@ -89,6 +89,7 @@ model User {
   shipments     Shipment[]     @relation("ShipperShipments")
   refreshTokens RefreshToken[]
   transactions  Transaction[]
+  couponUsages  CouponUsage[]
 
   @@map("users")
 }
@@ -175,6 +176,9 @@ model Order {
   orderItems      OrderItem[]
   maintenanceLogs MaintenanceLog[]
   shipment        Shipment?
+  couponCode      String?
+  discountAmount  Float            @default(0)
+  couponUsages    CouponUsage[]
 
   @@map("orders")
 }
@@ -303,4 +307,46 @@ model MaintenanceLog {
   orderId       String?
 
   @@map("maintenance_logs")
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  SHIPPING
+}
+
+model Coupon {
+  id                String       @id @default(uuid())
+  code              String       @unique
+  description       String?
+  discountType      DiscountType
+  discountValue     Float // Percentage (0-100) or Fixed Amount
+  minOrderValue     Float        @default(0)
+  maxDiscountAmount Float? // For percentage coupons
+  startDate         DateTime     @default(now())
+  endDate           DateTime?
+  usageLimit        Int? // Global limit
+  usageCount        Int          @default(0)
+  perUserLimit      Int? // Limit per user
+  isActive          Boolean      @default(true)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  usages CouponUsage[]
+
+  @@map("coupons")
+}
+
+model CouponUsage {
+  id       String   @id @default(uuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id])
+  couponId String
+  coupon   Coupon   @relation(fields: [couponId], references: [id])
+  orderId  String? // Optional link to order
+  order    Order?   @relation(fields: [orderId], references: [id])
+  usedAt   DateTime @default(now())
+
+  @@unique([userId, couponId, orderId]) // Prevent double counting for same order if needed, or business logic handles it
+  @@map("coupon_usages")
 }

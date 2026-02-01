@@ -14,7 +14,7 @@ const AdminPage = () => {
     const renderContent = () => {
         switch (activeTab) {
             case 'dashboard':
-                return <DashboardOverview />;
+                return <DashboardOverview setActiveTab={setActiveTab} />;
             case 'products':
                 return <ProductManagement />;
             case 'orders':

@@ -1,10 +1,36 @@
 import React, { useState } from 'react';
-import { useGetUsersQuery } from '../../services/userApi';
+import { useSelector } from 'react-redux';
+import { useGetUsersQuery, useUpdateUserRoleMutation } from '../../services/userApi';
+import { selectCurrentUser } from '../../features/auth/authSlice';
 import LoadingSpinner from '../common/LoadingSpinner';
+import Modal from '../common/Modal';
 
 const UserManagement = () => {
     const { data, isLoading, error } = useGetUsersQuery();
+    const currentUser = useSelector(selectCurrentUser);
+    const [updateUserRole, { isLoading: isUpdating }] = useUpdateUserRoleMutation();
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [roleToUpdate, setRoleToUpdate] = useState('');
+
+    const handleRowClick = (user) => {
+        setSelectedUser(user);
+        setRoleToUpdate(user.role);
+        setIsModalOpen(true);
+    };
+
+    const handleSaveRole = async () => {
+        if (!selectedUser) return;
+        try {
+            await updateUserRole({ id: selectedUser.id, role: roleToUpdate }).unwrap();
+            setIsModalOpen(false);
+            setSelectedUser(null);
+        } catch (error) {
+            console.error('Failed to update role', error);
+            alert('Failed to update role');
+        }
+    };
 
     const users = data?.data || [];
 
@@ -43,7 +69,11 @@ const UserManagement = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {filteredUsers.map((user) => (
-                            <tr key={user.id} className="hover:bg-gray-50">
+                            <tr 
+                                key={user.id} 
+                                className="hover:bg-gray-50 cursor-pointer transition-colors"
+                                onClick={() => handleRowClick(user)}
+                            >
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="text-sm font-medium text-gray-900">{user.name}</div>
                                 </td>
@@ -70,6 +100,84 @@ const UserManagement = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* User Details Modal */}
+            <Modal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                title="User Details"
+            >
+                {selectedUser && (
+                    <div className="space-y-6">
+                        <div className="flex items-center space-x-4">
+                            <div className="h-16 w-16 bg-gray-200 rounded-full flex items-center justify-center text-xl font-bold text-gray-500">
+                                {selectedUser.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <h4 className="text-lg font-bold">{selectedUser.name}</h4>
+                                <p className="text-gray-500">{selectedUser.email}</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="p-4 bg-gray-50 rounded-lg">
+                                <span className="text-sm text-gray-500 block">Phone</span>
+                                <span className="font-medium">{selectedUser.phone || 'N/A'}</span>
+                            </div>
+                            <div className="p-4 bg-gray-50 rounded-lg">
+                                <span className="text-sm text-gray-500 block">Address</span>
+                                <span className="font-medium truncate" title={selectedUser.address}>{selectedUser.address || 'N/A'}</span>
+                            </div>
+                            <div className="p-4 bg-gray-50 rounded-lg">
+                                <span className="text-sm text-gray-500 block">Joined Date</span>
+                                <span className="font-medium">{new Date(selectedUser.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            <div className="p-4 bg-gray-50 rounded-lg">
+                                <span className="text-sm text-gray-500 block">Balance</span>
+                                <span className="font-medium">{selectedUser.balance?.toLocaleString('vi-VN')} VND</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                User Role
+                            </label>
+                            <select
+                                value={roleToUpdate}
+                                onChange={(e) => setRoleToUpdate(e.target.value)}
+                                disabled={selectedUser.id === currentUser?.id}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+                            >
+                                <option value="CUSTOMER">CUSTOMER</option>
+                                <option value="EXPERT">EXPERT</option>
+                                <option value="SHIPPER">SHIPPER</option>
+                                <option value="ADMIN">ADMIN</option>
+                            </select>
+                            {selectedUser.id === currentUser?.id && (
+                                <p className="text-sm text-red-500 mt-1">
+                                    You cannot change your own role.
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="flex justify-end space-x-3 pt-4 border-t">
+                            <button
+                                onClick={() => setIsModalOpen(false)}
+                                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSaveRole}
+                                disabled={isUpdating || selectedUser.id === currentUser?.id}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isUpdating ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 };

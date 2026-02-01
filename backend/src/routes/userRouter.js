@@ -30,4 +30,9 @@ router.get(
   // authMiddleware,
   userController.getUserById.bind(userController),
 );
+router.put(
+  "/:id/role",
+  authMiddleware,
+  userController.updateUserRole.bind(userController),
+);
 export default router;

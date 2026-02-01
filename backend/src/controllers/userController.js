@@ -123,6 +123,34 @@ class UserController {
       next(error);
     }
   }
+
+  /**
+   * Update User Role
+   * PUT /api/users/:id/role
+   */
+  async updateUserRole(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { role } = req.body;
+
+      if (!role) {
+        return res.status(400).json({
+          success: false,
+          message: "Role is required",
+        });
+      }
+
+      const updatedUser = await userService.updateUserRole(id, role);
+
+      res.status(200).json({
+        success: true,
+        message: "User role updated successfully",
+        data: updatedUser,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new UserController();

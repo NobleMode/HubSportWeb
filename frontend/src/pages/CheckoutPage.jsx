@@ -69,10 +69,6 @@ const CheckoutPage = () => {
     }));
   };
 
-  const shippingFee = 50000;
-  const tax = Math.round((totalAmount + totalDeposit) * 0.1);
-  const finalTotal = totalAmount + totalDeposit + shippingFee + tax;
-  const isWalletInsufficient = formData.paymentMethod === 'WALLET' && user?.balance < finalTotal;
 
   const { showToast } = useToast();
 
@@ -248,6 +244,7 @@ const CheckoutPage = () => {
     discount;
   const tax = Math.round(subtotalBeforeTax * 0.1);
   const finalTotal = subtotalBeforeTax + tax;
+  const isWalletInsufficient = formData.paymentMethod === 'WALLET' && user?.balance < finalTotal;
 
 
   return (

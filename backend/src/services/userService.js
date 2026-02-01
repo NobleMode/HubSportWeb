@@ -72,6 +72,13 @@ class UserService {
       },
     });
   }
+
+  async updateUserRole(userId, role) {
+    return prisma.user.update({
+      where: { id: userId },
+      data: { role },
+    });
+  }
 }
 
 export default new UserService();

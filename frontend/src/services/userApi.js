@@ -34,6 +34,14 @@ export const userApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
+    updateUserRole: builder.mutation({
+      query: ({ id, role }) => ({
+        url: `/users/${id}/role`,
+        method: "PUT",
+        body: { role },
+      }),
+      invalidatesTags: ["User"],
+    }),
   }),
 });
 
@@ -43,4 +51,5 @@ export const {
   useGetUserByIdQuery,
   useUpgradeToExpertMutation,
   useUpdateExpertProfileMutation,
+  useUpdateUserRoleMutation,
 } = userApi;

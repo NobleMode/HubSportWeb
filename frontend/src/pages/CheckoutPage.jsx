@@ -41,6 +41,12 @@ const CheckoutPage = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Coupon state
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponError, setCouponError] = useState("");
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+
   // Redirect if cart is empty (but not during order submission)
   React.useEffect(() => {
     if (cartItems.length === 0 && !isSubmitting) {
@@ -137,8 +143,85 @@ const CheckoutPage = () => {
     }
   };
 
+  // Mock coupon database - In production, this should be an API call
+  const availableCoupons = {
+    SAVE10: {
+      code: "SAVE10",
+      discount: 10,
+      type: "percentage",
+      description: "10% off",
+    },
+    SAVE20: {
+      code: "SAVE20",
+      discount: 20,
+      type: "percentage",
+      description: "20% off",
+    },
+    WELCOME: {
+      code: "WELCOME",
+      discount: 50000,
+      type: "fixed",
+      description: "50,000đ off",
+    },
+    FREESHIP: {
+      code: "FREESHIP",
+      discount: 50000,
+      type: "shipping",
+      description: "Free shipping",
+    },
+  };
+
+  const handleApplyCoupon = (e) => {
+    e.preventDefault();
+    setIsApplyingCoupon(true);
+    setCouponError("");
+
+    // Simulate API call
+    setTimeout(() => {
+      const coupon = availableCoupons[couponCode.toUpperCase()];
+
+      if (coupon) {
+        setAppliedCoupon(coupon);
+        setCouponError("");
+      } else {
+        setCouponError("Invalid coupon code");
+        setAppliedCoupon(null);
+      }
+      setIsApplyingCoupon(false);
+    }, 500);
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponError("");
+  };
+
+  // Calculate discount
+  const calculateDiscount = () => {
+    if (!appliedCoupon) return 0;
+
+    if (appliedCoupon.type === "percentage") {
+      return Math.round(
+        (totalAmount + totalDeposit) * (appliedCoupon.discount / 100),
+      );
+    } else if (appliedCoupon.type === "fixed") {
+      return appliedCoupon.discount;
+    } else if (appliedCoupon.type === "shipping") {
+      return shippingFee;
+    }
+    return 0;
+  };
+
   const shippingFee = 50000;
-  const tax = Math.round((totalAmount + totalDeposit) * 0.1);
+  const discount = calculateDiscount();
+  const subtotalBeforeTax =
+    totalAmount +
+    totalDeposit +
+    (appliedCoupon?.type === "shipping" ? 0 : shippingFee) -
+    discount;
+  const tax = Math.round(subtotalBeforeTax * 0.1);
+  const finalTotal = subtotalBeforeTax + tax;
 
   return (
     <div className="bg-gray-50 min-h-screen py-8">
@@ -753,6 +836,97 @@ const CheckoutPage = () => {
                 ))}
               </div>
 
+              {/* Coupon Section */}
+              <div className="border-t pt-4 mb-4">
+                <p className="text-sm font-semibold text-gray-700 mb-3">
+                  Have a coupon?
+                </p>
+                {!appliedCoupon ? (
+                  <>
+                    <form
+                      onSubmit={handleApplyCoupon}
+                      className="flex gap-2 mb-3"
+                    >
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value)}
+                        placeholder="Coupon code"
+                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      <Button
+                        type="submit"
+                        variant="secondary"
+                        className="px-4 text-sm"
+                        disabled={isApplyingCoupon || !couponCode.trim()}
+                      >
+                        {isApplyingCoupon ? "Applying..." : "Apply"}
+                      </Button>
+                    </form>
+                    {couponError && (
+                      <p className="text-xs text-red-600 mb-2">{couponError}</p>
+                    )}
+                    <p className="text-xs text-blue-600 font-medium">
+                      Try:{" "}
+                      <button
+                        type="button"
+                        onClick={() => setCouponCode("SAVE10")}
+                        className="bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-colors"
+                      >
+                        SAVE10
+                      </button>
+                      ,{" "}
+                      <button
+                        type="button"
+                        onClick={() => setCouponCode("SAVE20")}
+                        className="bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-colors"
+                      >
+                        SAVE20
+                      </button>
+                      , or{" "}
+                      <button
+                        type="button"
+                        onClick={() => setCouponCode("WELCOME")}
+                        className="bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-colors"
+                      >
+                        WELCOME
+                      </button>
+                    </p>
+                  </>
+                ) : (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <svg
+                        className="w-5 h-5 text-green-600"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-semibold text-green-800">
+                          {appliedCoupon.code}
+                        </p>
+                        <p className="text-xs text-green-700">
+                          {appliedCoupon.description}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      className="text-red-600 hover:text-red-700 text-sm font-medium"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+
               {/* Price Breakdown */}
               <div className="border-t pt-4 space-y-3">
                 <div className="flex justify-between text-gray-600">
@@ -771,12 +945,22 @@ const CheckoutPage = () => {
                 )}
                 <div className="flex justify-between text-gray-600">
                   <span>Shipping</span>
-                  <span className="font-semibold">
+                  <span
+                    className={`font-semibold ${appliedCoupon?.type === "shipping" ? "line-through text-gray-400" : ""}`}
+                  >
                     {shippingFee.toLocaleString("vi-VN")}đ
                   </span>
                 </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Discount ({appliedCoupon?.code})</span>
+                    <span className="font-semibold">
+                      -{discount.toLocaleString("vi-VN")}đ
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between text-gray-600">
-                  <span>Tax</span>
+                  <span>Tax (10%)</span>
                   <span className="font-semibold">
                     {tax.toLocaleString("vi-VN")}đ
                   </span>
@@ -784,15 +968,14 @@ const CheckoutPage = () => {
                 <div className="border-t pt-3 flex justify-between font-bold text-lg">
                   <span>Total</span>
                   <span className="text-blue-600">
-                    {(
-                      totalAmount +
-                      totalDeposit +
-                      shippingFee +
-                      tax
-                    ).toLocaleString("vi-VN")}
-                    đ
+                    {finalTotal.toLocaleString("vi-VN")}đ
                   </span>
                 </div>
+                {discount > 0 && (
+                  <p className="text-xs text-green-600 text-right mt-1">
+                    You saved {discount.toLocaleString("vi-VN")}đ!
+                  </p>
+                )}
               </div>
 
               {/* Secure Checkout Badge */}

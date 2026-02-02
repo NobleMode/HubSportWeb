@@ -1,0 +1,238 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  CUSTOMER
+  EXPERT
+  SHIPPER
+}
+
+enum ProductType {
+  SALE
+  RENTAL
+}
+
+enum ProductItemStatus {
+  AVAILABLE
+  RENTING
+  MAINTENANCE
+  LOST
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPING
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      UserRole @default(CUSTOMER)
+  balance   Float    @default(0)
+  name      String?
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  orders        Order[]
+  expertProfile ExpertProfile?
+  bookings      Booking[]
+  reviews       Review[]
+  shipments     Shipment[]     @relation("ShipperShipments")
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model Product {
+  id          String      @id @default(uuid())
+  name        String
+  description String?
+  type        ProductType
+  salePrice   Float?
+  rentalPrice Float? // Price per day/hour
+  depositFee  Float?
+  category    String?
+  brand       String?
+  imageUrl    String?
+  stock       Int         @default(0)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  productItems ProductItem[]
+  orderItems   OrderItem[]
+  reviews      Review[]
+
+  @@map("products")
+}
+
+model ProductItem {
+  id           String            @id @default(uuid())
+  serialNumber String            @unique
+  status       ProductItemStatus @default(AVAILABLE)
+  productId    String
+  product      Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  // Relations
+  orderItems OrderItem[]
+
+  @@map("product_items")
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  status          OrderStatus @default(PENDING)
+  totalAmount     Float       @default(0)
+  totalDeposit    Float       @default(0)
+  paymentMethod   String?
+  shippingAddress String?
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // Relations
+  orderItems OrderItem[]
+  shipment   Shipment?
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id            String       @id @default(uuid())
+  orderId       String
+  order         Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product      @relation(fields: [productId], references: [id])
+  productItemId String?
+  productItem   ProductItem? @relation(fields: [productItemId], references: [id])
+  quantity      Int          @default(1)
+  price         Float
+  depositFee    Float        @default(0)
+  rentalDays    Int? // For rental items
+  isRental      Boolean      @default(false)
+  
+  // Return & Damage Info
+  returnedAt    DateTime?
+  condition     String?      // GOOD, DAMAGED, LOST
+  damageFee     Float?       @default(0)
+  lateFee       Float?       @default(0)
+  notes         String?      // Notes on return condition
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@map("order_items")
+}
+
+model Shipment {
+  id             String    @id @default(uuid())
+  orderId        String    @unique
+  order          Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  shipperId      String?
+  shipper        User?     @relation("ShipperShipments", fields: [shipperId], references: [id])
+  trackingNumber String?   @unique
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("shipments")
+}
+
+model ExpertProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio            String?
+  specialization String?
+  hourlyRate     Float    @default(0)
+  isVerified     Boolean  @default(false)
+  rating         Float    @default(0)
+  totalBookings  Int      @default(0)
+  imageUrl       String?
+  videoUrl       String?
+  gallery        String[]
+  socialLinks    Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  bookings Booking[]
+
+  @@map("expert_profiles")
+}
+
+model Booking {
+  id          String        @id @default(uuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  expertId    String
+  expert      ExpertProfile @relation(fields: [expertId], references: [id])
+  status      BookingStatus @default(PENDING)
+  bookingDate DateTime
+  duration    Int // in hours
+  totalAmount Float
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("bookings")
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  rating    Int // 1-5
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("reviews")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revoked   Boolean  @default(false)
+
+  @@map("refresh_tokens")
+}

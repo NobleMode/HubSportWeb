@@ -825,6 +825,11 @@ const CheckoutPage = () => {
                                     ).toLocaleString("vi-VN")}
                                 đ
                               </p>
+                              {item.depositFee > 0 && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Deposit: {item.depositFee.toLocaleString("vi-VN")}đ
+                                </p>
+                              )}
                             </div>
                           </div>
                         ))}
@@ -916,6 +921,11 @@ const CheckoutPage = () => {
                             )}
                         đ
                       </p>
+                      {item.depositFee > 0 && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Deposit: {item.depositFee.toLocaleString("vi-VN")}đ
+                        </p>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -1015,14 +1025,14 @@ const CheckoutPage = () => {
               {/* Price Breakdown */}
               <div className="border-t pt-4 space-y-3">
                 <div className="flex justify-between text-gray-600">
-                  <span>Subtotal</span>
+                  <span>Rental/Sale Fee</span>
                   <span className="font-semibold">
                     {totalAmount.toLocaleString("vi-VN")}đ
                   </span>
                 </div>
                 {totalDeposit > 0 && (
                   <div className="flex justify-between text-gray-600">
-                    <span>Deposit</span>
+                    <span>Security Deposit (Refundable)</span>
                     <span className="font-semibold">
                       {totalDeposit.toLocaleString("vi-VN")}đ
                     </span>

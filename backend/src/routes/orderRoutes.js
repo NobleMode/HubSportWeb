@@ -36,4 +36,25 @@ router.get('/my-orders', orderController.getMyOrders.bind(orderController));
  */
 router.patch('/:id/cancel', orderController.cancelOrder.bind(orderController));
 
+/**
+ * @route   GET /api/orders/:id
+ * @desc    Get order details
+ * @access  Private
+ */
+router.get('/:id', orderController.getOrderDetails.bind(orderController));
+
+/**
+ * @route   PATCH /api/orders/items/:itemId/images
+ * @desc    Update rental images
+ * @access  Private
+ */
+router.patch('/items/:itemId/images', orderController.updateOrderItemImages.bind(orderController));
+
+/**
+ * @route   PATCH /api/orders/items/:itemId/report
+ * @desc    Report item issue
+ * @access  Private
+ */
+router.patch('/items/:itemId/report', orderController.reportOrderItemIssue.bind(orderController));
+
 export default router;

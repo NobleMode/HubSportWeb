@@ -89,9 +89,21 @@ const OrderHistoryPage = () => {
                                             </Button>
                                         )}
                                     </div>
-                                    <p className="font-bold text-lg text-primary-600">
-                                        Total: {(order.totalAmount + order.totalDeposit).toLocaleString('vi-VN')} VND
-                                    </p>
+                                    <div className="flex flex-col items-end">
+                                        <div className="text-sm text-gray-600">
+                                            <span>Fee: </span>
+                                            <span className="font-medium">{order.totalAmount.toLocaleString('vi-VN')}đ</span>
+                                        </div>
+                                        {order.totalDeposit > 0 && (
+                                            <div className="text-sm text-gray-600">
+                                                <span>Deposit: </span>
+                                                <span className="font-medium">{order.totalDeposit.toLocaleString('vi-VN')}đ</span>
+                                            </div>
+                                        )}
+                                        <p className="font-bold text-lg text-primary-600 mt-1">
+                                            Total: {(order.totalAmount + order.totalDeposit).toLocaleString('vi-VN')}đ
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
 

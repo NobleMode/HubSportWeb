@@ -194,6 +194,9 @@ model OrderItem {
   rentalDays    Int? // For rental items
   isRental      Boolean      @default(false)
 
+  rentalImagesBefore String[] // Images before renting
+  rentalImagesAfter  String[] // Images after renting
+
   // Return & Damage Info
   returnedAt DateTime?
   condition  String? // GOOD, DAMAGED, LOST

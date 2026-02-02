@@ -97,6 +97,73 @@ class OrderController {
           next(error);
       }
   }
+
+  /**
+   * Update rental images
+   * PATCH /api/orders/items/:itemId/images
+   */
+  async updateOrderItemImages(req, res, next) {
+      try {
+          const { itemId } = req.params;
+          const { type, images } = req.body; // type: 'BEFORE' | 'AFTER'
+
+          const updatedItem = await orderService.updateOrderItemImages(itemId, type, images);
+
+          res.status(200).json({
+              success: true,
+              data: updatedItem,
+              message: 'Images updated successfully'
+          });
+      } catch (error) {
+          next(error);
+      }
+  }
+
+  /**
+   * Report item issue
+   * PATCH /api/orders/items/:itemId/report
+   */
+  async reportOrderItemIssue(req, res, next) {
+      try {
+          const { itemId } = req.params;
+          const { condition, damageFee, notes } = req.body;
+
+          const updatedItem = await orderService.updateOrderItemStatus(itemId, { condition, damageFee, notes });
+
+          res.status(200).json({
+              success: true,
+              data: updatedItem,
+              message: 'Item reported successfully'
+          });
+      } catch (error) {
+          next(error);
+      }
+  }
+
+  /**
+   * Get order details by ID
+   * GET /api/orders/:id
+   */
+  async getOrderDetails(req, res, next) {
+      try {
+          const orderId = req.params.id;
+          const order = await orderService.getOrderById(orderId);
+
+          if (!order) {
+              return res.status(404).json({
+                  success: false,
+                  message: 'Order not found'
+              });
+          }
+
+          res.status(200).json({
+              success: true,
+              data: order
+          });
+      } catch (error) {
+          next(error);
+      }
+  }
 }
 
 export default new OrderController();

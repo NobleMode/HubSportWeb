@@ -3,12 +3,14 @@ import { useGetAllOrdersQuery, useCancelOrderMutation } from '../../services/ord
 import LoadingSpinner from '../common/LoadingSpinner';
 import Button from '../common/Button';
 import { useToast } from '../../context/ToastContext';
+import AdminOrderDetailsModal from './AdminOrderDetailsModal';
 
 const OrderManagement = () => {
     const { data, isLoading, error } = useGetAllOrdersQuery();
     const [cancelOrder, { isLoading: isCancelling }] = useCancelOrderMutation();
     const { showToast } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedOrder, setSelectedOrder] = useState(null);
 
     const orders = data?.data || [];
     
@@ -54,7 +56,8 @@ const OrderManagement = () => {
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order Fee</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deposit</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
@@ -73,7 +76,10 @@ const OrderManagement = () => {
                                     {new Date(order.createdAt).toLocaleDateString()}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {(order.totalAmount + order.totalDeposit).toLocaleString('vi-VN')} VND
+                                    {(order.totalAmount).toLocaleString('vi-VN')} VND
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {order.totalDeposit > 0 ? `${order.totalDeposit.toLocaleString('vi-VN')} VND` : '-'}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -87,6 +93,14 @@ const OrderManagement = () => {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <Button 
+                                        variant="outline" 
+                                        size="sm"
+                                        className="mr-2"
+                                        onClick={() => setSelectedOrder(order)}
+                                    >
+                                        Details
+                                    </Button>
                                     {order.status === 'PENDING' && (
                                         <Button 
                                             variant="outline" 
@@ -104,6 +118,19 @@ const OrderManagement = () => {
                     </tbody>
                 </table>
             </div>
+
+            
+            {/* Order Details Modal */}
+            {selectedOrder && (
+                <AdminOrderDetailsModal 
+                    order={selectedOrder} 
+                    onClose={() => setSelectedOrder(null)} 
+                    onUpdate={() => {
+                        // Ideally trigger a refetch here if needed, or rely on RTK Query cache invalidation
+                        setSelectedOrder(null);
+                    }}
+                />
+            )}
         </div>
     );
 };

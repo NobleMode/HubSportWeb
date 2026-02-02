@@ -139,6 +139,34 @@ class OrderService {
     });
   }
 
+  /**
+   * Get order by ID with full details
+   */
+  async getOrderById(orderId) {
+    return await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true, 
+            address: true
+          }
+        },
+        orderItems: {
+          include: {
+            product: true,
+            productItem: true, // Include specific product item info if assigned
+          },
+        },
+        shipment: true,
+        maintenanceLogs: true,
+      },
+    });
+  }
+
   async cancelOrder(orderId, userId) {
     // 1. Check if order exists and belongs to user
     const order = await prisma.order.findUnique({
@@ -185,6 +213,48 @@ class OrderService {
         }
         
         return updatedOrder;
+    });
+  }
+
+  /**
+   * Update rental images for an order item
+   * @param {string} orderItemId
+   * @param {string} type 'BEFORE' or 'AFTER'
+   * @param {string[]} images Array of image URLs
+   */
+  async updateOrderItemImages(orderItemId, type, images) {
+    const field = type === 'BEFORE' ? 'rentalImagesBefore' : 'rentalImagesAfter';
+    
+    return await prisma.orderItem.update({
+      where: { id: orderItemId },
+      data: {
+        [field]: images
+      }
+    });
+  }
+
+  /**
+   * Report issue/damage for an order item
+   * @param {string} orderItemId
+   * @param {object} data { condition, damageFee, notes }
+   */
+  async updateOrderItemStatus(orderItemId, data) {
+    const { condition, damageFee, notes } = data;
+    
+    return await prisma.orderItem.update({
+      where: { id: orderItemId },
+      data: {
+        condition,
+        damageFee: parseFloat(damageFee),
+        notes
+      }
+    });
+  }
+
+  async getOrderItem(id) {
+    return await prisma.orderItem.findUnique({
+        where: { id },
+        include: { product: true }
     });
   }
 }

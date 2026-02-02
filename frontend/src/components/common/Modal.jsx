@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
-const Modal = ({ isOpen, onClose, title, children }) => {
+const Modal = ({ isOpen, onClose, title, children, className = '', maxWidth = 'max-w-md md:max-w-lg' }) => {
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === 'Escape') onClose();
@@ -29,7 +29,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
       />
       
       {/* Modal Content */}
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md md:max-w-lg transform transition-all flex flex-col max-h-[90vh]">
+      <div className={`relative bg-white rounded-lg shadow-xl w-full ${maxWidth} transform transition-all flex flex-col max-h-[90vh] ${className}`}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <h3 className="text-xl font-semibold text-gray-900">

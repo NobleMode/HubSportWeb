@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { 
     useGetProductItemsQuery, 
-    useCreateProductItemMutation, 
+    useCreateProductItemMutation,
+    useUpdateProductItemMutation, 
     useLogMaintenanceMutation,
     useLiquidateItemMutation 
 } from '../../services/productApi';
@@ -16,16 +17,23 @@ const ProductItemManagement = ({ product, onClose }) => {
         skip: !product,
     });
     const [createItem] = useCreateProductItemMutation();
+    const [updateItem] = useUpdateProductItemMutation();
     const [logMaintenance] = useLogMaintenanceMutation();
     const [liquidateItem] = useLiquidateItemMutation();
     
     const { showToast } = useToast();
     
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isMaintainModalOpen, setIsMaintainModalOpen] = useState(false);
     const [isLiquidateModalOpen, setIsLiquidateModalOpen] = useState(false);
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
+    const [editFormData, setEditFormData] = useState({
+        serialNumber: '',
+        status: 'AVAILABLE',
+        condition: 'NEW'
+    });
     
     const [newItemSerial, setNewItemSerial] = useState('');
     
@@ -41,6 +49,30 @@ const ProductItemManagement = ({ product, onClose }) => {
 
     const items = data?.data || [];
 
+    const CONDITION_LABELS = {
+        'NEW': 'New',
+        'LIKE_NEW': '99%',
+        'GOOD': '85%',
+        'POOR': 'Poor',
+        'DAMAGED': 'Damaged',
+        'DISPOSED': 'Disposed'
+    };
+
+    const handleUpdateItem = async (e) => {
+        e.preventDefault();
+        try {
+            await updateItem({
+                id: selectedItem.id,
+                productId: product.id, // For tag invalidation
+                ...editFormData
+            }).unwrap();
+            showToast('Item updated successfully', 'success');
+            setIsEditModalOpen(false);
+        } catch (err) {
+            showToast(err.data?.message || 'Failed to update item', 'error');
+        }
+    };
+
     const handleCreateItem = async (e) => {
         e.preventDefault();
         try {
@@ -48,7 +80,7 @@ const ProductItemManagement = ({ product, onClose }) => {
                 productId: product.id,
                 serialNumber: newItemSerial,
                 status: 'AVAILABLE',
-                condition: 'NEW'
+                condition: 'NEW' // Default to NEW
             }).unwrap();
             showToast('Item added successfully', 'success');
             setIsAddModalOpen(false);
@@ -101,6 +133,16 @@ const ProductItemManagement = ({ product, onClose }) => {
         setIsMaintainModalOpen(true);
     };
 
+    const openEdit = (item) => {
+        setSelectedItem(item);
+        setEditFormData({
+            serialNumber: item.serialNumber,
+            status: item.status,
+            condition: item.condition
+        });
+        setIsEditModalOpen(true);
+    };
+
     const openLiquidate = (item) => {
         setSelectedItem(item);
         setIsLiquidateModalOpen(true);
@@ -149,10 +191,10 @@ const ProductItemManagement = ({ product, onClose }) => {
                                         item.status === 'AVAILABLE' ? 'bg-green-100 text-green-800' : 
                                         item.status === 'MAINTENANCE' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
                                     }`}>
-                                        {item.status} {item.isForLiquidation ? '(Liq)' : ''}
+                                    {item.status} {item.isForLiquidation ? '(Liq)' : ''}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm">{item.condition}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">{CONDITION_LABELS[item.condition] || item.condition}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                     {item.lastMaintenanceDate 
                                         ? new Date(item.lastMaintenanceDate).toLocaleDateString() 
@@ -161,6 +203,9 @@ const ProductItemManagement = ({ product, onClose }) => {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                                     {item.condition !== 'DISPOSED' && (
                                         <>
+                                             <Button variant="ghost" size="sm" className="text-blue-600" onClick={() => openEdit(item)}>
+                                                Edit
+                                            </Button>
                                             <Button variant="ghost" size="sm" onClick={() => openMaintenance(item)}>
                                                 Maintenance
                                             </Button>
@@ -197,6 +242,55 @@ const ProductItemManagement = ({ product, onClose }) => {
                     <div className="flex justify-end gap-2">
                         <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
                         <Button type="submit">Add Item</Button>
+                    </div>
+                </form>
+            </Modal>
+            
+            {/* Edit Item Modal */}
+            <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Item">
+                <form onSubmit={handleUpdateItem}>
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Serial Number</label>
+                            <input 
+                                type="text" 
+                                required 
+                                className="input-field mt-1"
+                                value={editFormData.serialNumber}
+                                onChange={(e) => setEditFormData({...editFormData, serialNumber: e.target.value})}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Condition</label>
+                            <select 
+                                className="input-field mt-1"
+                                value={editFormData.condition}
+                                onChange={(e) => setEditFormData({...editFormData, condition: e.target.value})}
+                            >
+                                <option value="NEW">New</option>
+                                <option value="LIKE_NEW">99%</option>
+                                <option value="GOOD">85%</option>
+                                <option value="POOR">Poor</option>
+                                <option value="DAMAGED">Damaged</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Status</label>
+                            <select 
+                                className="input-field mt-1"
+                                value={editFormData.status}
+                                onChange={(e) => setEditFormData({...editFormData, status: e.target.value})}
+                            >
+                                <option value="AVAILABLE">Available</option>
+                                <option value="RENTING">Renting</option>
+                                <option value="MAINTENANCE">Maintenance</option>
+                                <option value="LOST">Lost</option>
+                            </select>
+                        </div>
+                        <div className="flex justify-end gap-2 pt-2">
+                             <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+                             <Button type="submit">Update Item</Button>
+                        </div>
                     </div>
                 </form>
             </Modal>

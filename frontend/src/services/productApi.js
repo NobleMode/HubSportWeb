@@ -47,7 +47,7 @@ export const productApi = baseApi.injectEndpoints({
     // Product Items
     getProductItems: builder.query({
       query: (productId) => `/products/${productId}/items`,
-      providesTags: ['ProductItem'],
+      providesTags: (result, error, productId) => [{ type: 'ProductItem', id: productId }],
     }),
     createProductItem: builder.mutation({
       query: (data) => ({
@@ -55,7 +55,10 @@ export const productApi = baseApi.injectEndpoints({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: ['ProductItem', 'Product'],
+      invalidatesTags: (result, error, { productId }) => [
+          { type: 'ProductItem', id: productId }, 
+          'Product'
+      ],
     }),
     updateProductItem: builder.mutation({
       query: ({ id, ...data }) => ({
@@ -63,7 +66,7 @@ export const productApi = baseApi.injectEndpoints({
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: ['ProductItem'],
+      invalidatesTags: (result, error, { productId }) => [{ type: 'ProductItem', id: productId }],
     }),
     logMaintenance: builder.mutation({
       query: ({ id, ...data }) => ({
@@ -79,7 +82,10 @@ export const productApi = baseApi.injectEndpoints({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: ['ProductItem', 'Product'],
+      invalidatesTags: (result, error, { productId }) => [
+          { type: 'ProductItem', id: productId }, 
+          'Product'
+      ],
     }),
     getItemHistory: builder.query({
       query: (id) => `/product-items/${id}/history`,

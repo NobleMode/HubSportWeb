@@ -57,18 +57,25 @@ class ProductItemService {
     // But we could add a check here if needed
 
     // Use transaction to create item and increment product stock
-    return prisma.$transaction(async (tx) => {
-      const item = await tx.productItem.create({
-        data,
-      });
+    try {
+      return await prisma.$transaction(async (tx) => {
+        const item = await tx.productItem.create({
+          data,
+        });
 
-      await tx.product.update({
-        where: { id: data.productId },
-        data: { stock: { increment: 1 } },
-      });
+        await tx.product.update({
+          where: { id: data.productId },
+          data: { stock: { increment: 1 } },
+        });
 
-      return item;
-    });
+        return item;
+      });
+    } catch (error) {
+      if (error.code === 'P2002' && error.meta?.target?.includes('serialNumber')) {
+        throw new Error(`Serial Number '${data.serialNumber}' already exists.`);
+      }
+      throw error;
+    }
   }
 
   /**

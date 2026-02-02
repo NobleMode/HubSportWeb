@@ -70,8 +70,12 @@ class ProductService {
     const products = await prisma.product.findMany({
       where,
       include: {
-        productItems: {
-          where: { status: "AVAILABLE" },
+        _count: {
+           select: { 
+               productItems: { 
+                   where: { condition: { not: 'DISPOSED' } } 
+               } 
+           }
         },
         reviews: {
           select: {
@@ -92,10 +96,16 @@ class ProductService {
             product.reviews.length
           : 0;
 
+      // Dynamic Stock Logic
+      // stock: Always DB value (represents Sale Stock)
+      // rentalStock: Dynamic count of physical items (represents Rental Stock)
+      
       return {
         ...product,
+        stock: product.stock, // Explicitly keep manual stock for Sale count
+        rentalStock: product._count ? product._count.productItems : 0, // Dynamic Rental count
         averageRating: avgRating,
-        availableStock: product.productItems.length,
+        availableStock: product.type === 'RENTAL' ? (product._count ? product._count.productItems : 0) : product.stock,
         reviews: undefined, // Remove reviews array from response
       };
     });

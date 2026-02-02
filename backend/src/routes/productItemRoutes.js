@@ -10,6 +10,13 @@ const router = express.Router({ mergeParams: true });
 // For now, let's treat this as /api/product-items, but enable mergeParams just in case we nest it later.
 
 /**
+ * @route   GET /api/products/:productId/items
+ * @desc    Get all items for a product
+ * @access  Public
+ */
+router.get('/', productItemController.getItemsByProductId.bind(productItemController));
+
+/**
  * @route   GET /api/product-items/:id
  * @desc    Get product item by ID
  * @access  Public

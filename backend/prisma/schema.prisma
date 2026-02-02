@@ -48,7 +48,8 @@ enum BookingStatus {
 
 enum Condition {
   NEW
-  GOOD
+  LIKE_NEW // 99%
+  GOOD // 85%
   FAIR
   POOR
   DAMAGED

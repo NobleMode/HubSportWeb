@@ -82,9 +82,10 @@ class OrderService {
                   take: item.quantity
               });
 
-              if (availableItems.length < item.quantity) {
-                  throw new Error(`Not enough available items for rental product: ${item.name}`);
-              }
+              // Availability check removed to allow orders when stock is insufficient (fulfillment handled later)
+              // if (availableItems.length < item.quantity) {
+              //     throw new Error(`Not enough available items for rental product: ${item.name}`);
+              // }
 
               // Update them to RENTING
               await tx.productItem.updateMany({

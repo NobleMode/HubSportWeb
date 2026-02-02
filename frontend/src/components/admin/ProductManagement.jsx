@@ -180,7 +180,14 @@ const ProductManagement = () => {
                                     }
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {product.stock}
+                                    {product.type === 'RENTAL' ? (
+                                        <div className="flex flex-col">
+                                            <span className="text-xs text-gray-500">Rent: {product.rentalStock || 0}</span>
+                                            <span className="text-xs text-gray-600 font-semibold">Sale: {product.stock}</span>
+                                        </div>
+                                    ) : (
+                                        product.stock
+                                    )}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                     {product.type === 'RENTAL' && (
@@ -301,7 +308,9 @@ const ProductManagement = () => {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Stock</label>
+                            <label className="block text-sm font-medium text-gray-700">
+                                {formData.type === 'RENTAL' ? 'Sale Stock (Manual)' : 'Stock'}
+                            </label>
                             <input
                                 type="number"
                                 name="stock"
@@ -313,6 +322,18 @@ const ProductManagement = () => {
                             />
                         </div>
                     </div>
+                    
+                    {formData.type === 'RENTAL' && (
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700">Rental Stock (Managed via "Manage Items")</label>
+                             <input
+                                type="number"
+                                disabled
+                                className="input-field mt-1 bg-gray-100 text-gray-500"
+                                value={editingProduct?.rentalStock || 0}
+                            />
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-2 gap-4">
                         {formData.type === 'SALE' ? (
@@ -370,7 +391,7 @@ const ProductManagement = () => {
                 isOpen={!!managingProduct}
                 onClose={() => setManagingProduct(null)}
                 title=""
-                className="max-w-4xl w-full"
+                maxWidth="max-w-7xl"
             >
                 {managingProduct && (
                     <ProductItemManagement 

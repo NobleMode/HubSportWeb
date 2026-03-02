@@ -49,16 +49,8 @@ const RegisterPage = () => {
         password: encryptedPassword,
       }).unwrap();
 
-      // Save credentials to Redux store
-      dispatch(
-        setCredentials({
-          user: response.data.user,
-          token: response.data.token,
-        }),
-      );
-
-      // Redirect to home page
-      navigate("/");
+      // Redirect to OTP verification page
+      navigate("/verify-otp", { state: { email: formData.email } });
     } catch (err) {
       setError(err.data?.message || "Registration failed. Please try again.");
     }

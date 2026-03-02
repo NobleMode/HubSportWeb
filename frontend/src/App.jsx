@@ -34,6 +34,12 @@ import OrderFailPage from "./pages/OrderFailPage";
 import PlayersPage from "./pages/PlayersPage";
 import PlayerDetailsPage from "./pages/PlayerDetailsPage";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
+import SellerRegistrationPage from "./pages/SellerRegistrationPage";
+import ShopDetailsPage from "./pages/ShopDetailsPage";
+import SellerDashboardPage from "./pages/SellerDashboardPage";
+import VerifyOtpPage from "./pages/VerifyOtpPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 import NotFoundPage from "./pages/NotFoundPage";
 
@@ -101,6 +107,9 @@ function App() {
             <Route path="/about" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/verify-otp" element={<VerifyOtpPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/products/:id" element={<ProductDetailsPage />} />
             <Route path="/cart" element={<CartPage />} />
@@ -109,6 +118,7 @@ function App() {
             <Route path="/order-fail" element={<OrderFailPage />} />
             <Route path="/players" element={<PlayersPage />} />
             <Route path="/players/:id" element={<PlayerDetailsPage />} />
+            <Route path="/shop/:id" element={<ShopDetailsPage />} />
 
             {/* Protected Routes */}
             <Route
@@ -132,6 +142,22 @@ function App() {
               element={
                 <RoleGuard>
                   <OrderHistoryPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/become-seller"
+              element={
+                <RoleGuard allowedRoles={["CUSTOMER"]}>
+                  <SellerRegistrationPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/seller-dashboard"
+              element={
+                <RoleGuard allowedRoles={["SELLER"]}>
+                  <SellerDashboardPage />
                 </RoleGuard>
               }
             />

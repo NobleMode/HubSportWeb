@@ -1,4 +1,4 @@
-import prisma from '../config/database.js';
+import prisma from "../config/database.js";
 
 /**
  * Order Service
@@ -9,39 +9,86 @@ class OrderService {
    * Create a new order
    */
   async createOrder(userId, orderData) {
-    const { items, shippingAddress, notes, paymentMethod, totalAmount, totalDeposit } = orderData;
+    const {
+      items,
+      shippingAddress,
+      notes,
+      paymentMethod,
+      totalAmount,
+      totalDeposit,
+    } = orderData;
 
     // Start a transaction to ensure data consistency
     return await prisma.$transaction(async (tx) => {
-      // 1. Create the Order record
+      // 1. Group items by shopId to create ShopOrders
+      const itemsByShop = items.reduce((acc, item) => {
+        const shopId = item.shopId || null; // Use null if no shopId (meaning admin/hub product)
+        const key = shopId || "admin";
+        if (!acc[key]) acc[key] = { shopId, items: [] };
+        acc[key].items.push(item);
+        return acc;
+      }, {});
+
+      // 2. Prepare ShopOrders data
+      const shopOrdersData = Object.values(itemsByShop).map((shopGroup) => {
+        const shopItems = shopGroup.items;
+        const shopTotalAmount = shopItems.reduce(
+          (sum, item) => sum + item.price * item.quantity,
+          0,
+        );
+        const shopTotalDeposit = shopItems.reduce(
+          (sum, item) => sum + (item.depositFee || 0) * item.quantity,
+          0,
+        );
+
+        // Calculate Commission (Default 5% or from Shop model)
+        const commissionRate = shopGroup.shopId ? 5.0 : 0; // No commission for admin
+        const commissionFee = (shopTotalAmount * commissionRate) / 100;
+        const sellerEarning = shopTotalAmount - commissionFee;
+
+        return {
+          shopId: shopGroup.shopId,
+          status: "PENDING",
+          totalAmount: shopTotalAmount,
+          totalDeposit: shopTotalDeposit,
+          commissionRate,
+          commissionFee,
+          sellerEarning,
+          orderItems: {
+            create: shopItems.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              price: item.price,
+              depositFee: item.depositFee || 0,
+              isRental: item.type === "RENTAL",
+              rentalDays: item.rentalDays,
+            })),
+          },
+        };
+      });
+
+      // 3. Create the Main Order record with nested ShopOrders
       const order = await tx.order.create({
         data: {
           userId,
-          status: 'PENDING',
+          status: "PENDING",
           totalAmount,
           totalDeposit,
           paymentMethod,
           shippingAddress,
           notes,
-          orderItems: {
-            create: items.map(item => ({
-              productId: item.productId,
-              quantity: item.quantity,
-              price: item.price,
-              depositFee: item.depositFee || 0,
-              isRental: item.type === 'RENTAL',
-              rentalDays: item.rentalDays,
-            })),
+          shopOrders: {
+            create: shopOrdersData,
           },
         },
         include: {
-          orderItems: true,
+          shopOrders: {
+            include: {
+              orderItems: true,
+            },
+          },
         },
       });
-
-      // 2. Update stock for SALE items (Optional: depending on business rules)
-      // We will skip strict stock management for now to avoid complexity, 
-      // but ideally we should decrement stock here.
 
       return order;
     });
@@ -60,7 +107,7 @@ class OrderService {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
@@ -75,7 +122,7 @@ class OrderService {
             id: true,
             name: true,
             email: true,
-          }
+          },
         },
         orderItems: {
           include: {
@@ -83,7 +130,7 @@ class OrderService {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
@@ -94,22 +141,50 @@ class OrderService {
     });
 
     if (!order) {
-      throw new Error('Order not found');
+      throw new Error("Order not found");
     }
 
     if (order.userId !== userId) {
-      throw new Error('Unauthorized to cancel this order');
+      throw new Error("Unauthorized to cancel this order");
     }
 
     // 2. Check if order is pending
-    if (order.status !== 'PENDING') {
-        throw new Error('Only pending orders can be cancelled');
+    if (order.status !== "PENDING") {
+      throw new Error("Only pending orders can be cancelled");
     }
 
-    // 3. Update status
-    return prisma.order.update({
+    // 3. Start transaction to cancel main order, shop orders, and update items
+    return await prisma.$transaction(async (tx) => {
+      // 3a. Update Main Order
+      const updatedOrder = await tx.order.update({
         where: { id: orderId },
-        data: { status: 'CANCELLED' },
+        data: { status: "CANCELLED" },
+      });
+
+      // 3b. Update all ShopOrders
+      await tx.shopOrder.updateMany({
+        where: { orderId: orderId },
+        data: { status: "CANCELLED" },
+      });
+
+      // 3c. If there were physical product items tied to the order (e.g. rentals), revert their status to AVAILABLE
+      const orderItems = await tx.orderItem.findMany({
+        where: { shopOrder: { orderId: orderId } },
+        select: { productItemId: true },
+      });
+
+      const productItemIds = orderItems
+        .map((i) => i.productItemId)
+        .filter((id) => id !== null);
+
+      if (productItemIds.length > 0) {
+        await tx.productItem.updateMany({
+          where: { id: { in: productItemIds } },
+          data: { status: "AVAILABLE" },
+        });
+      }
+
+      return updatedOrder;
     });
   }
 }

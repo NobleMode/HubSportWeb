@@ -1,4 +1,4 @@
-import { baseApi } from './baseApi';
+import { baseApi } from "./baseApi";
 
 /**
  * Auth API
@@ -8,42 +8,71 @@ export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation({
       query: (credentials) => ({
-        url: '/auth/login',
-        method: 'POST',
+        url: "/auth/login",
+        method: "POST",
         body: credentials,
       }),
-      invalidatesTags: ['User'],
+      invalidatesTags: ["User"],
     }),
     register: builder.mutation({
       query: (userData) => ({
-        url: '/auth/register',
-        method: 'POST',
+        url: "/auth/register",
+        method: "POST",
         body: userData,
       }),
-      invalidatesTags: ['User'],
+      invalidatesTags: ["User"],
     }),
     getProfile: builder.query({
-      query: () => '/auth/profile',
-      providesTags: ['User'],
+      query: () => "/auth/profile",
+      providesTags: ["User"],
     }),
     updateProfile: builder.mutation({
       query: (data) => ({
-        url: '/auth/profile',
-        method: 'PUT',
+        url: "/auth/profile",
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['User'],
+      invalidatesTags: ["User"],
     }),
     refreshToken: builder.mutation({
       query: () => ({
-        url: '/auth/refresh-token',
-        method: 'POST',
+        url: "/auth/refresh-token",
+        method: "POST",
       }),
     }),
     logout: builder.mutation({
       query: () => ({
-        url: '/auth/logout',
-        method: 'POST',
+        url: "/auth/logout",
+        method: "POST",
+      }),
+    }),
+    verifyOtp: builder.mutation({
+      query: (data) => ({
+        url: "/auth/verify-otp",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    resendOtp: builder.mutation({
+      query: (data) => ({
+        url: "/auth/resend-otp",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    forgotPassword: builder.mutation({
+      query: (data) => ({
+        url: "/auth/forgot-password",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    resetPassword: builder.mutation({
+      query: (data) => ({
+        url: "/auth/reset-password",
+        method: "POST",
+        body: data,
       }),
     }),
   }),
@@ -56,4 +85,8 @@ export const {
   useUpdateProfileMutation,
   useRefreshTokenMutation,
   useLogoutMutation,
+  useVerifyOtpMutation,
+  useResendOtpMutation,
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
 } = authApi;

@@ -4,6 +4,7 @@ import {
   useGetProductByIdQuery,
   useGetProductsQuery,
 } from "../services/productApi";
+import { Link } from "react-router-dom";
 import { getImageUrl } from "../utils/imageUtils";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "../features/cart/cartSlice";
@@ -202,6 +203,7 @@ const ProductDetailsPage = () => {
         depositFee: product.depositFee,
         quantity: 1,
         imageUrl: product.imageUrl, // Ensure image is passed
+        shop: product.shop, // Store shop reference for grouping
       }),
     );
     // Visual feedback
@@ -277,6 +279,38 @@ const ProductDetailsPage = () => {
             <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2">
               {product.name}
             </h1>
+            {product.shop && (
+              <Link
+                to={`/shop/${product.shop.id}`}
+                className="mb-6 flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100 group transition-all hover:bg-white hover:shadow-md"
+              >
+                <div className="w-12 h-12 rounded-xl bg-gray-200 overflow-hidden flex-shrink-0 border border-gray-100">
+                  {product.shop.avatarUrl ? (
+                    <img
+                      src={product.shop.avatarUrl}
+                      alt={product.shop.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center font-bold text-amber-600 bg-amber-50">
+                      {product.shop.name.charAt(0)}
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                    Cung cấp bởi
+                  </p>
+                  <h4 className="font-bold text-gray-900 group-hover:text-amber-600 transition-colors">
+                    {product.shop.name}
+                  </h4>
+                </div>
+                <div className="px-3 py-1 bg-white rounded-lg text-xs font-bold text-amber-600 border border-amber-100 group-hover:bg-amber-500 group-hover:text-white transition-all">
+                  Ghé Shop
+                </div>
+              </Link>
+            )}
+
             <p className="text-gray-500 mb-8 leading-relaxed">
               {product.description ||
                 "Experience top-tier performance with this premium equipment."}

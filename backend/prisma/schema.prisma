@@ -15,6 +15,7 @@ enum UserRole {
   CUSTOMER
   EXPERT
   SHIPPER
+  SELLER
 }
 
 enum ProductType {
@@ -55,6 +56,9 @@ model User {
   name      String?
   phone     String?
   address   String?
+  isVerified Boolean  @default(false)
+  otpCode   String?
+  otpExpires DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -65,6 +69,7 @@ model User {
   reviews       Review[]
   shipments     Shipment[]     @relation("ShipperShipments")
   refreshTokens RefreshToken[]
+  shop          Shop?
 
   @@map("users")
 }
@@ -84,6 +89,10 @@ model Product {
   isActive    Boolean     @default(true)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+
+  // Marketplace
+  shopId      String?
+  shop        Shop?       @relation(fields: [shopId], references: [id])
 
   // Relations
   productItems ProductItem[]
@@ -122,16 +131,40 @@ model Order {
   updatedAt       DateTime    @updatedAt
 
   // Relations
-  orderItems OrderItem[]
-  shipment   Shipment?
+  shopOrders     ShopOrder[]
 
   @@map("orders")
 }
 
+model ShopOrder {
+  id             String      @id @default(uuid())
+  orderId        String
+  order          Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  shopId         String
+  shop           Shop        @relation(fields: [shopId], references: [id])
+  status         OrderStatus @default(PENDING)
+  
+  // Financials
+  totalAmount    Float       @default(0)
+  totalDeposit   Float       @default(0)
+  commissionRate Float       @default(5.0)
+  commissionFee  Float       @default(0)
+  sellerEarning  Float       @default(0)
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  // Relations
+  orderItems     OrderItem[]
+  shipment       Shipment?
+
+  @@map("shop_orders")
+}
+
 model OrderItem {
   id            String       @id @default(uuid())
-  orderId       String
-  order         Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  shopOrderId   String
+  shopOrder     ShopOrder    @relation(fields: [shopOrderId], references: [id], onDelete: Cascade)
   productId     String
   product       Product      @relation(fields: [productId], references: [id])
   productItemId String?
@@ -157,8 +190,8 @@ model OrderItem {
 
 model Shipment {
   id             String    @id @default(uuid())
-  orderId        String    @unique
-  order          Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  shopOrderId    String    @unique
+  shopOrder      ShopOrder @relation(fields: [shopOrderId], references: [id], onDelete: Cascade)
   shipperId      String?
   shipper        User?     @relation("ShipperShipments", fields: [shipperId], references: [id])
   trackingNumber String?   @unique
@@ -235,4 +268,25 @@ model RefreshToken {
   revoked   Boolean  @default(false)
 
   @@map("refresh_tokens")
+}
+
+model Shop {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  description    String?
+  avatarUrl      String?
+  coverUrl       String?
+  isActive       Boolean  @default(true)
+  commissionRate Float    @default(5.0)
+  balance        Float    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  products              Product[]
+  shopOrders            ShopOrder[]
+
+  @@map("shops")
 }

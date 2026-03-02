@@ -1,4 +1,5 @@
 import authService from "../services/authService.js";
+import mailService from "../services/mailService.js";
 
 /**
  * Auth Controller
@@ -13,7 +14,6 @@ class AuthController {
     try {
       const { email, password, role, name } = req.body;
 
-      // Validation
       if (!email || !password) {
         return res.status(400).json({
           success: false,
@@ -21,26 +21,113 @@ class AuthController {
         });
       }
 
-      // Password already hashed by FE (HMAC), but we stick to the flow of verify/store
-      // In this unified flow:
-      // FE sends: HMAC(password, key)
-      // BE receives: hashed_password
-      // BE stores: hashed_password directly (as per user request "apply generally HMAC and key")
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
-      const { user, accessToken, refreshToken } = await authService.register({
+      const user = await authService.register({
         email,
         password,
-        role,
+        role: role || "CUSTOMER",
         name,
+        otpCode: otp,
+        otpExpires,
+        isVerified: false,
       });
 
-      // Set Refresh Token Cookie
-      this.setTokenCookie(res, refreshToken);
+      // Send OTP via Email
+      await mailService.sendOTP(email, otp);
 
       res.status(201).json({
         success: true,
-        message: "User registered successfully",
+        message:
+          "Registration successful. Please check your email for OTP code.",
+        data: { email: user.email },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Verify OTP
+   * POST /api/auth/verify-otp
+   */
+  async verifyOtp(req, res, next) {
+    try {
+      const { email, otp } = req.body;
+      const { user, accessToken, refreshToken } = await authService.verifyOtp(
+        email,
+        otp,
+      );
+
+      this.setTokenCookie(res, refreshToken);
+
+      res.status(200).json({
+        success: true,
+        message: "OTP verified successfully",
         data: { user, token: accessToken },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Resend OTP
+   * POST /api/auth/resend-otp
+   */
+  async resendOtp(req, res, next) {
+    try {
+      const { email } = req.body;
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+      await authService.updateOtp(email, otp, otpExpires);
+      await mailService.sendOTP(email, otp);
+
+      res.status(200).json({
+        success: true,
+        message: "OTP resent successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Forgot Password
+   * POST /api/auth/forgot-password
+   */
+  async forgotPassword(req, res, next) {
+    try {
+      const { email } = req.body;
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+      await authService.updateOtp(email, otp, otpExpires);
+      await mailService.sendOTP(email, otp);
+
+      res.status(200).json({
+        success: true,
+        message: "Reset OTP sent to your email",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Reset Password
+   * POST /api/auth/reset-password
+   */
+  async resetPassword(req, res, next) {
+    try {
+      const { email, otp, newPassword } = req.body;
+      await authService.resetPassword(email, otp, newPassword);
+
+      res.status(200).json({
+        success: true,
+        message: "Password reset successfully",
       });
     } catch (error) {
       next(error);

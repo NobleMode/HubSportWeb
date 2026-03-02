@@ -4,6 +4,7 @@ import productRoutes from "./productRoutes.js";
 import orderRoutes from "./orderRoutes.js";
 import userRoutes from "./userRouter.js";
 import uploadRoutes from "./uploadRoutes.js";
+import shopRoutes from "./shopRoutes.js";
 
 const router = express.Router();
 
@@ -36,5 +37,6 @@ router.use("/product-items", productItemRoutes);
 router.use("/orders", orderRoutes);
 router.use("/users", userRoutes);
 router.use("/upload", uploadRoutes);
+router.use("/shops", shopRoutes);
 
 export default router;

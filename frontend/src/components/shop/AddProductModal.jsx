@@ -10,7 +10,6 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    type: "SALE",
     category: "Cầu lông",
     brand: "",
     salePrice: "",
@@ -53,7 +52,14 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
-    return res.data.fileUrl || res.data.url || res.data; // adjust based on backend response
+    // The backend returns: { success: true, data: { url: "/uploads/..." } }
+    const fileUrl = res.data.data?.url || res.data.url;
+    // Prepend the backend URL if the returned URL is an absolute path from root
+    if (fileUrl && fileUrl.startsWith("/")) {
+      const baseUrl = apiUrl.replace(/\/api$/, "");
+      return baseUrl + fileUrl;
+    }
+    return fileUrl;
   };
 
   const handleSubmit = async (e) => {
@@ -72,18 +78,32 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
       const productPayload = {
         name: formData.name,
         description: formData.description,
-        type: formData.type,
+        type: "BOTH", // Default to BOTH or simplify backend logic if needed, we'll keep SALE if only sale, RENTAL if only rental.
         category: formData.category,
         brand: formData.brand,
         stock: parseInt(formData.stock, 10),
         imageUrl: finalImageUrl,
       };
 
-      if (formData.type === "SALE") {
-        productPayload.salePrice = parseFloat(formData.salePrice);
+      const parsedSale = parseFloat(formData.salePrice);
+      const parsedRental = parseFloat(formData.rentalPrice);
+      const parsedDeposit = parseFloat(formData.depositFee);
+
+      if (!isNaN(parsedSale) && parsedSale > 0) {
+        productPayload.salePrice = parsedSale;
+      }
+      if (!isNaN(parsedRental) && parsedRental > 0) {
+        productPayload.rentalPrice = parsedRental;
+        productPayload.depositFee = !isNaN(parsedDeposit) ? parsedDeposit : 0;
+      }
+
+      // Determine final semantic Type
+      if (productPayload.salePrice && productPayload.rentalPrice) {
+        productPayload.type = "BOTH"; // Custom logic if supported by Prisma enum, otherwise defaulting is fine
+      } else if (productPayload.salePrice) {
+        productPayload.type = "SALE";
       } else {
-        productPayload.rentalPrice = parseFloat(formData.rentalPrice);
-        productPayload.depositFee = parseFloat(formData.depositFee);
+        productPayload.type = "RENTAL";
       }
 
       await createProduct(productPayload).unwrap();
@@ -93,11 +113,9 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
       }
       onClose(); // Close modal on success
 
-      // Reset form
       setFormData({
         name: "",
         description: "",
-        type: "SALE",
         category: "Cầu lông",
         brand: "",
         salePrice: "",
@@ -161,7 +179,7 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
                 <input
                   type="text"
                   name="name"
-                  value={formData.name}
+                  value={formData.name || ""}
                   onChange={handleChange}
                   required
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
@@ -175,7 +193,7 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
                 <input
                   type="text"
                   name="brand"
-                  value={formData.brand}
+                  value={formData.brand || ""}
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
                   placeholder="Ví dụ: Yonex"
@@ -210,7 +228,7 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
                   type="number"
                   name="stock"
                   min="0"
-                  value={formData.stock}
+                  value={formData.stock || ""}
                   onChange={handleChange}
                   required
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
@@ -218,92 +236,50 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
               </div>
             </div>
 
-            {/* Type */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Loại hình kinh doanh *
-              </label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="type"
-                    value="SALE"
-                    checked={formData.type === "SALE"}
-                    onChange={handleChange}
-                    className="w-4 h-4 text-blue-600 focus:ring-blue-600"
-                  />
-                  <span className="font-medium text-gray-700">
-                    Bán đứt (Sale)
-                  </span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="type"
-                    value="RENTAL"
-                    checked={formData.type === "RENTAL"}
-                    onChange={handleChange}
-                    className="w-4 h-4 text-blue-600 focus:ring-blue-600"
-                  />
-                  <span className="font-medium text-gray-700">
-                    Cho thuê (Rental)
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            {/* Pricing Details based on Type */}
-            {formData.type === "SALE" ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  Giá bán (VNĐ) *
+                  Giá bán đứt (VNĐ)
                 </label>
                 <input
                   type="number"
                   name="salePrice"
                   min="0"
-                  value={formData.salePrice}
+                  value={formData.salePrice || ""}
                   onChange={handleChange}
-                  required
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
-                  placeholder="Ví dụ: 1500000"
+                  placeholder="Bỏ trống nếu ko bán"
                 />
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-                <div>
-                  <label className="block text-sm font-semibold text-blue-900 mb-1">
-                    Giá thuê / ngày (VNĐ) *
-                  </label>
-                  <input
-                    type="number"
-                    name="rentalPrice"
-                    min="0"
-                    value={formData.rentalPrice}
-                    onChange={handleChange}
-                    required
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
-                    placeholder="Ví dụ: 50000"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-blue-900 mb-1">
-                    Phí cọc (VNĐ) *
-                  </label>
-                  <input
-                    type="number"
-                    name="depositFee"
-                    min="0"
-                    value={formData.depositFee}
-                    onChange={handleChange}
-                    required
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
-                    placeholder="Ví dụ: 1000000"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Giá thuê / ngày (VNĐ)
+                </label>
+                <input
+                  type="number"
+                  name="rentalPrice"
+                  min="0"
+                  value={formData.rentalPrice || ""}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                  placeholder="Bỏ trống nếu ko thuê"
+                />
               </div>
-            )}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Phí cọc (VNĐ)
+                </label>
+                <input
+                  type="number"
+                  name="depositFee"
+                  min="0"
+                  value={formData.depositFee || ""}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                  placeholder="Cần có nếu cho thuê"
+                />
+              </div>
+            </div>
 
             {/* Image */}
             <div className="bg-white p-4 rounded-xl border border-gray-200">
@@ -341,7 +317,7 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
                 <input
                   type="url"
                   name="imageUrl"
-                  value={formData.imageUrl}
+                  value={formData.imageUrl || ""}
                   onChange={handleChange}
                   required
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 outline-none"
@@ -367,7 +343,7 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
               <textarea
                 name="description"
                 rows="3"
-                value={formData.description}
+                value={formData.description || ""}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none resize-none"
                 placeholder="Nhập mô tả chi tiết sản phẩm..."

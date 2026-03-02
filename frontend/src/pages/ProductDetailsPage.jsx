@@ -25,14 +25,24 @@ const ProductDetailsPage = () => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const { data, isLoading, error } = useGetProductByIdQuery(id);
 
+  const hasRental = data?.data?.rentalPrice > 0;
+  const hasSale = data?.data?.salePrice > 0;
+
   const [activeTab, setActiveTab] = useState("RENT"); // 'RENT' or 'BUY'
 
+  // Set initial active tab based on what's available
+  useEffect(() => {
+    if (data?.data) {
+      if (hasRental) setActiveTab("RENT");
+      else if (hasSale) setActiveTab("BUY");
+    }
+  }, [data?.data, hasRental, hasSale]);
   // Rent State
-  const [rentCondition, setRentCondition] = useState("USED"); // 'LIKE_NEW' or 'USED'
-  const [rentDuration, setRentDuration] = useState("DAY"); // 'DAY', 'WEEK', 'MONTH'
+  const [rentCondition, setRentCondition] = useState("USED");
+  const [rentDuration, setRentDuration] = useState("DAY");
 
   // Buy State
-  const [buyCondition, setBuyCondition] = useState("NEW"); // 'NEW' or 'USED'
+  const [buyCondition, setBuyCondition] = useState("NEW");
 
   // Smart Popup State
   const [showUpsell, setShowUpsell] = useState(false);
@@ -97,15 +107,17 @@ const ProductDetailsPage = () => {
   useEffect(() => {
     let timer;
     if (activeTab === "BUY") {
-      // If user lingers on BUY tab for 5 seconds, show "Rent to Try" popup
+      // If user lingers on BUY tab for 5 seconds, show "Rent to Try" popup if rent is available
       timer = setTimeout(() => {
-        setShowUpsell(true);
+        if (hasRental) {
+          setShowUpsell(true);
+        }
       }, 5000);
     } else {
       setShowUpsell(false);
     }
     return () => clearTimeout(timer);
-  }, [activeTab]);
+  }, [activeTab, hasRental]);
 
   if (isLoading) {
     return (
@@ -327,32 +339,34 @@ const ProductDetailsPage = () => {
               </div>
             )}
 
-            {/* TABS HEADER */}
-            <div className="flex p-1 bg-gray-100 rounded-xl mb-8">
-              <button
-                onClick={() => setActiveTab("RENT")}
-                className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold uppercase tracking-wide transition-all duration-300 ${
-                  activeTab === "RENT"
-                    ? "bg-white text-electricBlue shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Rent to Try
-              </button>
-              <button
-                onClick={() => setActiveTab("BUY")}
-                className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold uppercase tracking-wide transition-all duration-300 ${
-                  activeTab === "BUY"
-                    ? "bg-white text-limeGreen shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Buy to Own
-              </button>
-            </div>
+            {/* Conditional Tabs */}
+            {hasRental && hasSale && (
+              <div className="flex bg-gray-100/50 p-1 rounded-xl mb-8">
+                <button
+                  onClick={() => setActiveTab("RENT")}
+                  className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${
+                    activeTab === "RENT"
+                      ? "bg-white text-electricBlue shadow-sm"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  RENT TO TRY
+                </button>
+                <button
+                  onClick={() => setActiveTab("BUY")}
+                  className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${
+                    activeTab === "BUY"
+                      ? "bg-white text-electricBlue shadow-sm"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  BUY TO OWN
+                </button>
+              </div>
+            )}
 
             {/* TAB CONTENT: RENT */}
-            {activeTab === "RENT" && (
+            {activeTab === "RENT" && hasRental && (
               <div className="space-y-6 animate-fadeIn">
                 {/* Condition Selector */}
                 <div>
@@ -446,7 +460,7 @@ const ProductDetailsPage = () => {
             )}
 
             {/* TAB CONTENT: BUY */}
-            {activeTab === "BUY" && (
+            {activeTab === "BUY" && hasSale && (
               <div className="space-y-6 animate-fadeIn">
                 {/* Option Selector */}
                 <div className="space-y-3">

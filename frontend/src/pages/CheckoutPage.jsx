@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   selectCartItems,
   selectTotalAmount,
@@ -24,12 +24,32 @@ const CheckoutPage = () => {
   const cartItems = useSelector(selectCartItems);
   const totalAmount = useSelector(selectTotalAmount);
   const totalDeposit = useSelector(selectTotalDeposit);
-  const currentUser = useSelector(selectCurrentUser);
-  
-  // Fetch fresh profile data to ensure balance is up to date
-  const { data: profileResponse } = useGetProfileQuery();
-  const user = profileResponse?.data || currentUser;
+  const user = useSelector(selectCurrentUser);
+  const location = useLocation();
+  const selectedItemIds = location.state?.selectedItemIds || [];
 
+  // Filter cart items based on selection from previous step
+  const checkoutItems = React.useMemo(() => {
+    if (selectedItemIds.length > 0) {
+      return cartItems.filter((i) => selectedItemIds.includes(i.id));
+    }
+    return cartItems; // fallback just in case
+  }, [cartItems, selectedItemIds]);
+
+  // Recalculate totals for checkoutItems ONLY
+  const { checkoutAmount, checkoutDeposit } = React.useMemo(() => {
+    let amt = 0,
+      dep = 0;
+    checkoutItems.forEach((item) => {
+      if (item.type === "RENTAL") {
+        amt += (item.rentalPrice || 0) * (item.rentalDays || 1) * item.quantity;
+        dep += (item.depositFee || 0) * item.quantity;
+      } else {
+        amt += (item.salePrice || 0) * item.quantity;
+      }
+    });
+    return { checkoutAmount: amt, checkoutDeposit: dep };
+  }, [checkoutItems]);
   const [createOrder, { isLoading: isOrderLoading }] = useCreateOrderMutation();
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -104,28 +124,17 @@ const CheckoutPage = () => {
 
     try {
       const orderData = {
-        items: cartItems.map((item) => {
-          // Determine price based on specific type if price is not explicitly set
-          let finalPrice = item.price;
-          if (!finalPrice) {
-            if (item.type === 'RENTAL') {
-              finalPrice = item.rentalPrice;
-            } else {
-              finalPrice = item.salePrice;
-            }
-          }
-
-          return {
-            productId: item.productId || item.id, // Handle both 'id' as productId or 'productId' field
-            quantity: item.quantity,
-            price: finalPrice,
-            depositFee: item.depositFee,
-            type: item.type,
-            rentalDays: item.rentalDays,
-          };
-        }),
-        totalAmount,
-        totalDeposit,
+        items: checkoutItems.map((item) => ({
+          productId: item.productId || item.id,
+          quantity: item.quantity,
+          price: item.price || item.salePrice || item.rentalPrice,
+          depositFee: item.depositFee,
+          type: item.type,
+          rentalDays: item.rentalDays,
+          shopId: item.shop?.id || item.shopId,
+        })),
+        totalAmount: checkoutAmount,
+        totalDeposit: checkoutDeposit,
         paymentMethod: formData.paymentMethod,
         shippingAddress: `${formData.shippingAddress}, ${formData.shippingCity}`,
         billingAddress: `${formData.shippingAddress}, ${formData.shippingCity}`,
@@ -225,7 +234,7 @@ const CheckoutPage = () => {
 
     if (appliedCoupon.type === "percentage") {
       return Math.round(
-        (totalAmount + totalDeposit) * (appliedCoupon.discount / 100),
+        (checkoutAmount + checkoutDeposit) * (appliedCoupon.discount / 100),
       );
     } else if (appliedCoupon.type === "fixed") {
       return appliedCoupon.discount;
@@ -238,8 +247,8 @@ const CheckoutPage = () => {
   const shippingFee = 50000;
   const discount = calculateDiscount();
   const subtotalBeforeTax =
-    totalAmount +
-    totalDeposit +
+    checkoutAmount +
+    checkoutDeposit +
     (appliedCoupon?.type === "shipping" ? 0 : shippingFee) -
     discount;
   const tax = Math.round(subtotalBeforeTax * 0.1);
@@ -654,7 +663,12 @@ const CheckoutPage = () => {
                             <div className="flex justify-between border-t pt-2 mt-2">
                               <span className="text-gray-600">Amount:</span>
                               <span className="font-bold text-blue-600 text-lg">
-                                {finalTotal.toLocaleString("vi-VN")}
+                                {(
+                                  checkoutAmount +
+                                  checkoutDeposit +
+                                  shippingFee +
+                                  tax
+                                ).toLocaleString("vi-VN")}
                                 đ
                               </span>
                             </div>
@@ -771,10 +785,10 @@ const CheckoutPage = () => {
                             d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
                           />
                         </svg>
-                        Order Items ({cartItems.length})
+                        Order Items ({checkoutItems.length})
                       </h3>
                       <div className="space-y-3">
-                        {cartItems.map((item) => (
+                        {checkoutItems.map((item) => (
                           <div
                             key={item.id}
                             className="flex gap-3 bg-white rounded-lg p-3"
@@ -873,7 +887,7 @@ const CheckoutPage = () => {
 
               {/* Cart Items */}
               <div className="max-h-64 overflow-y-auto mb-6 space-y-4">
-                {cartItems.map((item) => (
+                {checkoutItems.map((item) => (
                   <div key={item.id} className="flex gap-3">
                     <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                       {item.imageUrl ? (
@@ -1027,14 +1041,14 @@ const CheckoutPage = () => {
                 <div className="flex justify-between text-gray-600">
                   <span>Rental/Sale Fee</span>
                   <span className="font-semibold">
-                    {totalAmount.toLocaleString("vi-VN")}đ
+                    {checkoutAmount.toLocaleString("vi-VN")}đ
                   </span>
                 </div>
-                {totalDeposit > 0 && (
+                {checkoutDeposit > 0 && (
                   <div className="flex justify-between text-gray-600">
                     <span>Security Deposit (Refundable)</span>
                     <span className="font-semibold">
-                      {totalDeposit.toLocaleString("vi-VN")}đ
+                      {checkoutDeposit.toLocaleString("vi-VN")}đ
                     </span>
                   </div>
                 )}

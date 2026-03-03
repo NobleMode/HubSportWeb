@@ -1,4 +1,5 @@
 import productService from "../services/productService.js";
+import shopService from "../services/shopService.js";
 
 /**
  * Product Controller
@@ -57,6 +58,18 @@ class ProductController {
    */
   async createProduct(req, res, next) {
     try {
+      // If user is SELLER, automatically assign their shopId
+      if (req.user.role === "SELLER") {
+        const shop = await shopService.getShopByUserId(req.user.id);
+        if (!shop) {
+          return res.status(403).json({
+            success: false,
+            message: "You must create a shop before adding products",
+          });
+        }
+        req.body.shopId = shop.id;
+      }
+
       const product = await productService.createProduct(req.body);
 
       res.status(201).json({
@@ -76,6 +89,20 @@ class ProductController {
   async updateProduct(req, res, next) {
     try {
       const { id } = req.params;
+
+      // Ownership check for SELLER
+      if (req.user.role === "SELLER") {
+        const product = await productService.getProductById(id);
+        const shop = await shopService.getShopByUserId(req.user.id);
+
+        if (!shop || product.shopId !== shop.id) {
+          return res.status(403).json({
+            success: false,
+            message: "You are not authorized to update this product",
+          });
+        }
+      }
+
       const product = await productService.updateProduct(id, req.body);
 
       res.status(200).json({
@@ -95,6 +122,20 @@ class ProductController {
   async deleteProduct(req, res, next) {
     try {
       const { id } = req.params;
+
+      // Ownership check for SELLER
+      if (req.user.role === "SELLER") {
+        const product = await productService.getProductById(id);
+        const shop = await shopService.getShopByUserId(req.user.id);
+
+        if (!shop || product.shopId !== shop.id) {
+          return res.status(403).json({
+            success: false,
+            message: "You are not authorized to delete this product",
+          });
+        }
+      }
+
       await productService.deleteProduct(id);
 
       res.status(200).json({

@@ -33,24 +33,99 @@ class AuthService {
         password: hashedPassword,
         role,
         name,
+        otpCode: data.otpCode,
+        otpExpires: data.otpExpires,
+        isVerified: data.isVerified ?? false,
       },
       select: {
         id: true,
         email: true,
         role: true,
         name: true,
-        balance: true,
+        isVerified: true,
         createdAt: true,
       },
     });
 
-    // Get Scopes
-    const scopes = ROLE_SCOPES[role] || [];
+    return user;
+  }
 
-    // Generate token
-    const token = generateToken(user.id, role, scopes);
+  /**
+   * Verify OTP
+   */
+  async verifyOtp(email, otp) {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
 
-    return { user, token };
+    if (!user) throw new Error("User not found");
+    if (user.isVerified) throw new Error("User already verified");
+    if (user.otpCode !== otp) throw new Error("Invalid OTP code");
+    if (new Date() > user.otpExpires) throw new Error("OTP code expired");
+
+    const updatedUser = await prisma.user.update({
+      where: { email },
+      data: {
+        isVerified: true,
+        otpCode: null,
+        otpExpires: null,
+      },
+    });
+
+    // Generate tokens
+    const scopes = ROLE_SCOPES[updatedUser.role] || [];
+    const accessToken = generateToken(updatedUser.id, updatedUser.role, scopes);
+    const refreshToken = generateRefreshToken();
+
+    // Save refresh token
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: updatedUser.id,
+        expiresAt,
+      },
+    });
+
+    const { password: _, ...userWithoutPassword } = updatedUser;
+    return { user: userWithoutPassword, accessToken, refreshToken };
+  }
+
+  /**
+   * Update OTP
+   */
+  async updateOtp(email, otp, expires) {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) throw new Error("User not found");
+
+    return await prisma.user.update({
+      where: { email },
+      data: {
+        otpCode: otp,
+        otpExpires: expires,
+      },
+    });
+  }
+
+  /**
+   * Reset Password
+   */
+  async resetPassword(email, otp, newPassword) {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) throw new Error("User not found");
+    if (user.otpCode !== otp) throw new Error("Invalid OTP code");
+    if (new Date() > user.otpExpires) throw new Error("OTP code expired");
+
+    return await prisma.user.update({
+      where: { email },
+      data: {
+        password: newPassword, // FE sends HMAC hash
+        otpCode: null,
+        otpExpires: null,
+      },
+    });
   }
 
   /**
@@ -89,6 +164,10 @@ class AuthService {
 
     if (!isPasswordValid) {
       throw new Error("Invalid email or password");
+    }
+
+    if (!user.isVerified) {
+      throw new Error("Account not verified. Please verify your email.");
     }
 
     // Get Scopes

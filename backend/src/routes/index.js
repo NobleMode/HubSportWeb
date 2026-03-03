@@ -4,6 +4,7 @@ import productRoutes from "./productRoutes.js";
 import orderRoutes from "./orderRoutes.js";
 import userRoutes from "./userRouter.js";
 import uploadRoutes from "./uploadRoutes.js";
+import shopRoutes from "./shopRoutes.js";
 import transactionRoutes from "./transactionRoutes.js";
 import productItemRoutes from "./productItemRoutes.js";
 
@@ -29,6 +30,7 @@ router.use("/product-items", productItemRoutes);
 router.use("/orders", orderRoutes);
 router.use("/users", userRoutes);
 router.use("/upload", uploadRoutes);
+router.use("/shops", shopRoutes);
 router.use("/transactions", transactionRoutes);
 
 export default router;

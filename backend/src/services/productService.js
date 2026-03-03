@@ -16,12 +16,14 @@ class ProductService {
       search,
       minPrice,
       maxPrice,
+      shopId,
     } = filters;
 
     const where = {
       isActive,
       ...(type && { type }),
       ...(category && { category }),
+      ...(shopId && { shopId }),
     };
 
     // Search filter (name or description)
@@ -70,12 +72,14 @@ class ProductService {
     const products = await prisma.product.findMany({
       where,
       include: {
-        _count: {
-           select: { 
-               productItems: { 
-                   where: { condition: { not: 'DISPOSED' } } 
-               } 
-           }
+        shop: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        productItems: {
+          where: { status: "AVAILABLE" },
         },
         reviews: {
           select: {
@@ -120,6 +124,7 @@ class ProductService {
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
+        shop: true,
         productItems: true,
         reviews: {
           include: {

@@ -4,6 +4,7 @@ import {
   useGetProductByIdQuery,
   useGetProductsQuery,
 } from "../services/productApi";
+import { Link } from "react-router-dom";
 import { getImageUrl } from "../utils/imageUtils";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "../features/cart/cartSlice";
@@ -24,14 +25,24 @@ const ProductDetailsPage = () => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const { data, isLoading, error } = useGetProductByIdQuery(id);
 
+  const hasRental = data?.data?.rentalPrice > 0;
+  const hasSale = data?.data?.salePrice > 0;
+
   const [activeTab, setActiveTab] = useState("RENT"); // 'RENT' or 'BUY'
 
+  // Set initial active tab based on what's available
+  useEffect(() => {
+    if (data?.data) {
+      if (hasRental) setActiveTab("RENT");
+      else if (hasSale) setActiveTab("BUY");
+    }
+  }, [data?.data, hasRental, hasSale]);
   // Rent State
-  const [rentCondition, setRentCondition] = useState("USED"); // 'LIKE_NEW' or 'USED'
-  const [rentDuration, setRentDuration] = useState("DAY"); // 'DAY', 'WEEK', 'MONTH'
+  const [rentCondition, setRentCondition] = useState("USED");
+  const [rentDuration, setRentDuration] = useState("DAY");
 
   // Buy State
-  const [buyCondition, setBuyCondition] = useState("NEW"); // 'NEW' or 'USED'
+  const [buyCondition, setBuyCondition] = useState("NEW");
 
   // Smart Popup State
   const [showUpsell, setShowUpsell] = useState(false);
@@ -96,15 +107,17 @@ const ProductDetailsPage = () => {
   useEffect(() => {
     let timer;
     if (activeTab === "BUY") {
-      // If user lingers on BUY tab for 5 seconds, show "Rent to Try" popup
+      // If user lingers on BUY tab for 5 seconds, show "Rent to Try" popup if rent is available
       timer = setTimeout(() => {
-        setShowUpsell(true);
+        if (hasRental) {
+          setShowUpsell(true);
+        }
       }, 5000);
     } else {
       setShowUpsell(false);
     }
     return () => clearTimeout(timer);
-  }, [activeTab]);
+  }, [activeTab, hasRental]);
 
   if (isLoading) {
     return (
@@ -202,6 +215,7 @@ const ProductDetailsPage = () => {
         depositFee: product.depositFee,
         quantity: 1,
         imageUrl: product.imageUrl, // Ensure image is passed
+        shop: product.shop, // Store shop reference for grouping
       }),
     );
     // Visual feedback
@@ -271,6 +285,38 @@ const ProductDetailsPage = () => {
             <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2">
               {product.name}
             </h1>
+            {product.shop && (
+              <Link
+                to={`/shop/${product.shop.id}`}
+                className="mb-6 flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100 group transition-all hover:bg-white hover:shadow-md"
+              >
+                <div className="w-12 h-12 rounded-xl bg-gray-200 overflow-hidden flex-shrink-0 border border-gray-100">
+                  {product.shop.avatarUrl ? (
+                    <img
+                      src={product.shop.avatarUrl}
+                      alt={product.shop.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center font-bold text-amber-600 bg-amber-50">
+                      {product.shop.name.charAt(0)}
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                    Cung cấp bởi
+                  </p>
+                  <h4 className="font-bold text-gray-900 group-hover:text-amber-600 transition-colors">
+                    {product.shop.name}
+                  </h4>
+                </div>
+                <div className="px-3 py-1 bg-white rounded-lg text-xs font-bold text-amber-600 border border-amber-100 group-hover:bg-amber-500 group-hover:text-white transition-all">
+                  Ghé Shop
+                </div>
+              </Link>
+            )}
+
             <p className="text-gray-500 mb-8 leading-relaxed">
               {product.description ||
                 "Experience top-tier performance with this premium equipment."}
@@ -287,32 +333,34 @@ const ProductDetailsPage = () => {
               </div>
             )}
 
-            {/* TABS HEADER */}
-            <div className="flex p-1 bg-gray-100 rounded-xl mb-8">
-              <button
-                onClick={() => setActiveTab("RENT")}
-                className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold uppercase tracking-wide transition-all duration-300 ${
-                  activeTab === "RENT"
-                    ? "bg-white text-electricBlue shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Rent to Try
-              </button>
-              <button
-                onClick={() => setActiveTab("BUY")}
-                className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold uppercase tracking-wide transition-all duration-300 ${
-                  activeTab === "BUY"
-                    ? "bg-white text-limeGreen shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Buy to Own
-              </button>
-            </div>
+            {/* Conditional Tabs */}
+            {hasRental && hasSale && (
+              <div className="flex bg-gray-100/50 p-1 rounded-xl mb-8">
+                <button
+                  onClick={() => setActiveTab("RENT")}
+                  className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${
+                    activeTab === "RENT"
+                      ? "bg-white text-electricBlue shadow-sm"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  RENT TO TRY
+                </button>
+                <button
+                  onClick={() => setActiveTab("BUY")}
+                  className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${
+                    activeTab === "BUY"
+                      ? "bg-white text-electricBlue shadow-sm"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  BUY TO OWN
+                </button>
+              </div>
+            )}
 
             {/* TAB CONTENT: RENT */}
-            {activeTab === "RENT" && (
+            {activeTab === "RENT" && hasRental && (
               <div className="space-y-6 animate-fadeIn">
                 {/* Condition Selector */}
                 <div>
@@ -406,7 +454,7 @@ const ProductDetailsPage = () => {
             )}
 
             {/* TAB CONTENT: BUY */}
-            {activeTab === "BUY" && (
+            {activeTab === "BUY" && hasSale && (
               <div className="space-y-6 animate-fadeIn">
                 {/* Option Selector */}
                 <div className="space-y-3">

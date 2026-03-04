@@ -41,9 +41,11 @@ const ProfilePage = () => {
   const [expertFormData, setExpertFormData] = useState({
     bio: "",
     specialization: "",
+    level: "",
     hourlyRate: "",
     videoUrl: "",
     imageUrl: "",
+    isAvailable: true,
     socialLinks: {
       facebook: "",
       instagram: "",
@@ -70,13 +72,15 @@ const ProfilePage = () => {
   // Pre-fill Expert Data if exists
   useEffect(() => {
     if (user?.expertProfile) {
-      const { bio, specialization, hourlyRate, videoUrl, imageUrl, socialLinks } = user.expertProfile;
+      const { bio, specialization, level, hourlyRate, videoUrl, imageUrl, socialLinks, isAvailable } = user.expertProfile;
       setExpertFormData({
         bio: bio || "",
         specialization: specialization || "",
+        level: level || "",
         hourlyRate: hourlyRate || "",
         videoUrl: videoUrl || "",
         imageUrl: imageUrl || "",
+        isAvailable: isAvailable ?? true,
         socialLinks: {
           facebook: socialLinks?.facebook || "",
           instagram: socialLinks?.instagram || "",
@@ -96,9 +100,10 @@ const ProfilePage = () => {
   };
 
   const handleExpertChange = (e) => {
+    const { name, value, type, checked } = e.target;
     setExpertFormData({
       ...expertFormData,
-      [e.target.name]: e.target.value,
+      [name]: type === 'checkbox' ? checked : value,
     });
   };
 
@@ -399,10 +404,18 @@ const ProfilePage = () => {
                       className="w-32 h-32 rounded-full object-cover mx-auto md:mx-0 border-4 border-white shadow-lg mb-4"
                     />
                     <h3 className="text-xl font-bold text-gray-900">{formData.name}</h3>
-                    <p className="text-primary-600 font-medium">{user.expertProfile.specialization}</p>
+                    <p className="text-primary-600 font-medium">
+                      {user.expertProfile.specialization} 
+                      {user.expertProfile.level && ` • ${user.expertProfile.level}`}
+                    </p>
                     <p className="text-gray-500 text-sm mt-1">
                       {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(user.expertProfile.hourlyRate)} / hour
                     </p>
+                    <div className="mt-3">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.expertProfile.isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {user.expertProfile.isAvailable ? 'Available for Bookings' : 'Currently Unavailable'}
+                      </span>
+                    </div>
                     
                     {/* Social Links */}
                     <div className="flex gap-3 justify-center md:justify-start mt-4">
@@ -516,6 +529,40 @@ const ProfilePage = () => {
                             required
                           />
                         </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Level
+                          </label>
+                          <select
+                            name="level"
+                            value={expertFormData.level}
+                            onChange={handleExpertChange}
+                            className="input-field w-full"
+                            required
+                          >
+                            <option value="">Select Level</option>
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                            <option value="Professional">Professional</option>
+                          </select>
+                        </div>
+                        
+                        {formData.role === "EXPERT" && (
+                          <div className="flex items-center">
+                            <input
+                              type="checkbox"
+                              name="isAvailable"
+                              checked={expertFormData.isAvailable}
+                              onChange={handleExpertChange}
+                              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                            />
+                            <label className="ml-2 block text-sm text-gray-900">
+                              Available for Bookings / Matches
+                            </label>
+                          </div>
+                        )}
+                        
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Hourly Rate (VND)

@@ -20,7 +20,9 @@ class AuthService {
     });
 
     if (existingUser) {
-      throw new Error("User with this email already exists");
+      const error = new Error("User with this email already exists");
+      error.statusCode = 409;
+      throw error;
     }
 
     // Password already hashed (HMAC)
@@ -58,10 +60,26 @@ class AuthService {
       where: { email },
     });
 
-    if (!user) throw new Error("User not found");
-    if (user.isVerified) throw new Error("User already verified");
-    if (user.otpCode !== otp) throw new Error("Invalid OTP code");
-    if (new Date() > user.otpExpires) throw new Error("OTP code expired");
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+    if (user.isVerified) {
+      const error = new Error("User already verified");
+      error.statusCode = 400;
+      throw error;
+    }
+    if (user.otpCode !== otp) {
+      const error = new Error("Invalid OTP code");
+      error.statusCode = 400;
+      throw error;
+    }
+    if (new Date() > user.otpExpires) {
+      const error = new Error("OTP code expired");
+      error.statusCode = 400;
+      throw error;
+    }
 
     const updatedUser = await prisma.user.update({
       where: { email },
@@ -98,7 +116,11 @@ class AuthService {
    */
   async updateOtp(email, otp, expires) {
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) throw new Error("User not found");
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
 
     return await prisma.user.update({
       where: { email },
@@ -114,9 +136,21 @@ class AuthService {
    */
   async resetPassword(email, otp, newPassword) {
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) throw new Error("User not found");
-    if (user.otpCode !== otp) throw new Error("Invalid OTP code");
-    if (new Date() > user.otpExpires) throw new Error("OTP code expired");
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+    if (user.otpCode !== otp) {
+      const error = new Error("Invalid OTP code");
+      error.statusCode = 400;
+      throw error;
+    }
+    if (new Date() > user.otpExpires) {
+      const error = new Error("OTP code expired");
+      error.statusCode = 400;
+      throw error;
+    }
 
     return await prisma.user.update({
       where: { email },
@@ -156,18 +190,24 @@ class AuthService {
     });
 
     if (!user) {
-      throw new Error("Invalid email or password");
+      const error = new Error("Invalid email or password");
+      error.statusCode = 401;
+      throw error;
     }
 
     // Verify password (direct compare because both are HMAC hashes)
     const isPasswordValid = password === user.password;
 
     if (!isPasswordValid) {
-      throw new Error("Invalid email or password");
+      const error = new Error("Invalid email or password");
+      error.statusCode = 401;
+      throw error;
     }
 
     if (!user.isVerified) {
-      throw new Error("Account not verified. Please verify your email.");
+      const error = new Error("Account not verified. Please verify your email.");
+      error.statusCode = 403; // Forbidden until verified
+      throw error;
     }
 
     // Get Scopes
@@ -206,7 +246,9 @@ class AuthService {
 
     // Check if token exists
     if (!refreshTokenRecord) {
-      throw new Error("Invalid refresh token");
+      const error = new Error("Invalid refresh token");
+      error.statusCode = 401;
+      throw error;
     }
 
     // Check Revoked state with Grace Period (10s window)
@@ -214,13 +256,16 @@ class AuthService {
       // If revoked, check if it's within the grace period (expiresAt > now)
       // If current time is past the grace expiration (which we set to +10s on rotation), then fail.
       if (new Date() > refreshTokenRecord.expiresAt) {
-        throw new Error("Invalid refresh token (Revoked)");
+        const error = new Error("Invalid refresh token (Revoked)");
+        error.statusCode = 401;
+        throw error;
       }
       // If within grace period, we allow it to proceed (Zombie Token)
     } else {
-      // Normal check for expiration
       if (new Date() > refreshTokenRecord.expiresAt) {
-        throw new Error("Refresh token expired");
+        const error = new Error("Refresh token expired");
+        error.statusCode = 401;
+        throw error;
       }
     }
 
@@ -306,7 +351,9 @@ class AuthService {
     });
 
     if (!user) {
-      throw new Error("User not found");
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
     }
 
     return user;

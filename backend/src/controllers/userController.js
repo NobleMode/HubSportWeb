@@ -24,10 +24,13 @@ class UserController {
   }
   async getAllUsersByRole(req, res, next) {
     try {
-      console.log(req.params.role);
-      const users = await userService.getAllUsersByRole(req.params.role);
-
-      console.log(users);
+      const queryParams = {
+        specialization: req.query.specialization,
+        level: req.query.level,
+        city: req.query.city
+      };
+      
+      const users = await userService.getAllUsersByRole(req.params.role, queryParams);
 
       res.status(200).json({
         success: true,

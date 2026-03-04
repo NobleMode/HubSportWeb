@@ -30,6 +30,7 @@ async function main() {
       role: "ADMIN",
       phone: "0909000001",
       address: "Hanoi, Vietnam",
+      isVerified: true,
     },
   });
 
@@ -42,17 +43,7 @@ async function main() {
       phone: "0909000002",
       address: "Da Nang, Vietnam",
       balance: 500000,
-    },
-  });
-
-  const expert = await prisma.user.create({
-    data: {
-      email: "expert@gmail.com",
-      password,
-      name: "Coach David",
-      role: "EXPERT",
-      phone: "0909000003",
-      address: "Ho Chi Minh, Vietnam",
+      isVerified: true,
     },
   });
 
@@ -64,31 +55,102 @@ async function main() {
       role: "SHIPPER",
       phone: "0909000004",
       address: "Ho Chi Minh, Vietnam",
+      isVerified: true,
     },
   });
 
-  console.log("✅ Users created");
+  console.log("✅ Admin, Customer, Options created");
 
-  // 3. Create Expert Profile
-  console.log("🎓 Creating expert profile...");
-  await prisma.expertProfile.create({
-    data: {
-      userId: expert.id,
+  // 3. Create Expert Profiles
+  console.log("🎓 Creating expert profiles...");
+  
+  const expertData = [
+    {
+      email: "expert@gmail.com",
+      name: "Coach David",
+      phone: "0909000003",
+      address: "Ho Chi Minh, Vietnam",
       bio: "Professional Tennis Coach with 10 years of experience.",
       specialization: "Tennis",
+      level: "Professional",
       hourlyRate: 200000,
-      isVerified: true,
-      rating: 4.8,
-      totalBookings: 15,
-      imageUrl:
-        "https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-      gallery: [
-        "https://images.unsplash.com/photo-1622163642998-1ea32b0bbc67?w=500&auto=format&fit=crop&q=60",
-        "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?w=500&auto=format&fit=crop&q=60",
-      ],
+      imageUrl: "https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=500&auto=format&fit=crop&q=60",
     },
-  });
-  console.log("✅ Expert profile created");
+    {
+      email: "sarah.yoga@gmail.com",
+      name: "Sarah Jenkins",
+      phone: "0909000005",
+      address: "Hanoi, Vietnam",
+      bio: "Certified Vinyasa Yoga instructor focusing on mindfulness and strength.",
+      specialization: "Yoga",
+      level: "Advanced",
+      hourlyRate: 150000,
+      imageUrl: "https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=500&auto=format&fit=crop&q=60",
+    },
+    {
+      email: "mike.hoops@gmail.com",
+      name: "Mike Johnson",
+      phone: "0909000006",
+      address: "Da Nang, Vietnam",
+      bio: "Former college basketball player turned skills trainer.",
+      specialization: "Basketball",
+      level: "Intermediate",
+      hourlyRate: 180000,
+      imageUrl: "https://images.unsplash.com/photo-1518063319789-7217e6706b04?w=500&auto=format&fit=crop&q=60",
+    },
+    {
+      email: "elena.swim@gmail.com",
+      name: "Elena Rodriguez",
+      phone: "0909000007",
+      address: "Nha Trang, Vietnam",
+      bio: "Competitive swimmer offering lessons for all ages.",
+      specialization: "Swimming",
+      level: "Beginner",
+      hourlyRate: 120000,
+      imageUrl: "https://images.unsplash.com/photo-1560965839-a9310d65ff98?w=500&auto=format&fit=crop&q=60",
+    },
+    {
+      email: "alex.pt@gmail.com",
+      name: "Alex Tran",
+      phone: "0909000008",
+      address: "Ho Chi Minh, Vietnam",
+      bio: "Personal trainer specializing in sports conditioning and weight loss.",
+      specialization: "Personal Training",
+      level: "Professional",
+      hourlyRate: 250000,
+      imageUrl: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=500&auto=format&fit=crop&q=60",
+    }
+  ];
+
+  for (const exp of expertData) {
+    const user = await prisma.user.create({
+      data: {
+        email: exp.email,
+        password,
+        name: exp.name,
+        role: "EXPERT",
+        phone: exp.phone,
+        address: exp.address,
+        isVerified: true,
+      },
+    });
+
+    await prisma.expertProfile.create({
+      data: {
+        userId: user.id,
+        bio: exp.bio,
+        specialization: exp.specialization,
+        level: exp.level,
+        hourlyRate: exp.hourlyRate,
+        isVerified: true,
+        rating: 4.5 + Math.random() * 0.5,
+        totalBookings: Math.floor(Math.random() * 50),
+        imageUrl: exp.imageUrl,
+        gallery: [],
+      },
+    });
+  }
+  console.log("✅ Expert profiles created");
 
   // 4. Create Products
   console.log("📦 Creating products...");

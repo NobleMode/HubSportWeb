@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { userApi } from '../services/userApi';
+import { useCreateBookingMutation } from '../services/bookingApi';
 import Button from '../components/common/Button';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useSelector } from 'react-redux';
@@ -17,8 +18,38 @@ const PlayerDetailsPage = () => {
   const navigate = useNavigate();
   const { data, isLoading, error } = useGetUserByIdQuery(id);
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const [createBooking, { isLoading: isBooking }] = useCreateBookingMutation();
 
   const player = data?.data;
+
+  // Booking Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [bookingForm, setBookingForm] = useState({
+    bookingDate: '',
+    duration: 1,
+    notes: '',
+  });
+  const [bookingMessage, setBookingMessage] = useState('');
+  const [bookingError, setBookingError] = useState('');
+
+  const handleBookingSubmit = async (e) => {
+    e.preventDefault();
+    setBookingMessage('');
+    setBookingError('');
+    try {
+      await createBooking({
+        expertId: player.expertProfile.id,
+        bookingDate: bookingForm.bookingDate,
+        duration: parseInt(bookingForm.duration, 10),
+        notes: bookingForm.notes,
+      }).unwrap();
+      
+      setBookingMessage('Booking successful! Payment deducted from your wallet.');
+      setTimeout(() => setIsModalOpen(false), 2000);
+    } catch (err) {
+      setBookingError(err.data?.message || 'Failed to book player');
+    }
+  };
 
   // Mock Reviews
   const reviews = [
@@ -82,16 +113,28 @@ const PlayerDetailsPage = () => {
                    Joined {new Date(player.createdAt).toLocaleDateString()}
                  </span>
               </div>
-              <div className="flex gap-4 justify-center md:justify-start">
+              <div className="flex gap-4 justify-center md:justify-start mt-2">
                 <Button onClick={() => {
                   if (!isAuthenticated) {
                     navigate('/login');
                     return;
                   }
-                  alert('Feature coming soon!');
-                }}>
-                  Contact Player
+                  window.location.href = `mailto:${player.email}?subject=Inquiry from SportHub`;
+                }} variant="outline">
+                  Contact
                 </Button>
+                
+                {player.expertProfile?.isAvailable && (
+                  <Button onClick={() => {
+                    if (!isAuthenticated) {
+                      navigate('/login');
+                      return;
+                    }
+                    setIsModalOpen(true);
+                  }}>
+                    Book Player
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -119,7 +162,11 @@ const PlayerDetailsPage = () => {
                     </div>
                     <div>
                         <label className="block text-xs font-medium text-gray-500 uppercase">Availability</label>
-                        <p className="text-green-600 font-medium">Available for matches</p>
+                        {player.expertProfile?.isAvailable ? (
+                          <p className="text-green-600 font-medium overflow-hidden text-ellipsis whitespace-nowrap">Available for matches</p>
+                        ) : (
+                          <p className="text-red-500 font-medium overflow-hidden text-ellipsis whitespace-nowrap">Currently unavailable</p>
+                        )}
                     </div>
                 </div>
             </div>
@@ -172,6 +219,75 @@ const PlayerDetailsPage = () => {
             </div>
         </div>
       </div>
+
+      {/* Booking Modal */}
+      {isModalOpen && player?.expertProfile && (
+        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => !isBooking && setIsModalOpen(false)}></div>
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full p-6">
+              
+              <h3 className="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Book {player.name}</h3>
+              
+              {bookingMessage && <div className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded text-sm">{bookingMessage}</div>}
+              {bookingError && <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-sm">{bookingError}</div>}
+              
+              <form onSubmit={handleBookingSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
+                  <input
+                    type="datetime-local"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    value={bookingForm.bookingDate}
+                    onChange={(e) => setBookingForm({...bookingForm, bookingDate: e.target.value})}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Duration (Hours)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="12"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    value={bookingForm.duration}
+                    onChange={(e) => setBookingForm({...bookingForm, duration: e.target.value})}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                  <textarea
+                    rows="2"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    placeholder="Where to meet, specific goals, etc."
+                    value={bookingForm.notes}
+                    onChange={(e) => setBookingForm({...bookingForm, notes: e.target.value})}
+                  ></textarea>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-lg flex justify-between items-center text-lg mt-4">
+                   <span className="font-medium text-gray-700">Total Cost:</span>
+                   <span className="font-bold text-green-600">
+                     {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(player.expertProfile.hourlyRate * (bookingForm.duration || 1))}
+                   </span>
+                </div>
+
+                <div className="mt-6 flex justify-end gap-3">
+                  <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+                  <Button type="submit" disabled={isBooking}>
+                    {isBooking ? <LoadingSpinner size="sm" /> : 'Confirm Booking'}
+                  </Button>
+                </div>
+              </form>
+              
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -11,7 +11,10 @@ export const userApi = baseApi.injectEndpoints({
       providesTags: ["User"],
     }),
     getUsersByRole: builder.query({
-      query: (role) => `/users/role/${role}`,
+      query: ({ role, params }) => ({
+        url: `/users/role/${role}`,
+        params,
+      }),
       providesTags: ["User"],
     }),
     getUserById: builder.query({

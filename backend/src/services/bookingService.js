@@ -38,6 +38,30 @@ class BookingService {
       throw error;
     }
 
+    // 1.5. Check daily booking limit
+    const targetDate = new Date(bookingDate);
+    const startOfDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    const endOfDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() + 1);
+
+    const existingBookingsCount = await prisma.booking.count({
+      where: {
+        expertId: expertId,
+        bookingDate: {
+          gte: startOfDay,
+          lt: endOfDay,
+        },
+        status: {
+          in: ["CONFIRMED", "PENDING"],
+        },
+      },
+    });
+
+    if (existingBookingsCount >= expertProfile.dailyBookingLimit) {
+      const error = new Error(`Expert is fully booked for this date (${expertProfile.dailyBookingLimit} session limit reached)`);
+      error.statusCode = 400;
+      throw error;
+    }
+
     // 2. Calculate Costs and Commissions
     const hourlyRate = expertProfile.hourlyRate;
     const totalAmount = hourlyRate * duration;

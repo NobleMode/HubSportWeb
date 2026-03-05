@@ -102,19 +102,25 @@ class UserController {
       const {
         bio,
         specialization,
+        level,
         hourlyRate,
         videoUrl,
         gallery,
         socialLinks,
+        isAvailable,
+        dailyBookingLimit,
       } = req.body;
 
       const updatedProfile = await userService.updateExpertProfile(userId, {
         bio,
         specialization,
+        level,
         hourlyRate,
         videoUrl,
         gallery,
         socialLinks,
+        isAvailable,
+        dailyBookingLimit,
       });
 
       res.status(200).json({

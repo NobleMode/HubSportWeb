@@ -260,23 +260,24 @@ model Shipment {
 }
 
 model ExpertProfile {
-  id             String   @id @default(uuid())
-  userId         String   @unique
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bio            String?
-  specialization String?
-  level          String?
-  hourlyRate     Float    @default(0)
-  isVerified     Boolean  @default(false)
-  isAvailable    Boolean  @default(true)
-  rating         Float    @default(0)
-  totalBookings  Int      @default(0)
-  imageUrl       String?
-  videoUrl       String?
-  gallery        String[]
-  socialLinks    Json?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio               String?
+  specialization    String?
+  level             String?
+  hourlyRate        Float    @default(0)
+  isVerified        Boolean  @default(false)
+  isAvailable       Boolean  @default(true)
+  dailyBookingLimit Int      @default(3)
+  rating            Float    @default(0)
+  totalBookings     Int      @default(0)
+  imageUrl          String?
+  videoUrl          String?
+  gallery           String[]
+  socialLinks       Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   // Relations
   bookings Booking[]

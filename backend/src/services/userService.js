@@ -86,7 +86,7 @@ class UserService {
   }
 
   async updateExpertProfile(userId, data) {
-    const { bio, specialization, level, hourlyRate, videoUrl, gallery, socialLinks, isAvailable } =
+    const { bio, specialization, level, hourlyRate, videoUrl, gallery, socialLinks, isAvailable, dailyBookingLimit } =
       data;
 
     // Check if profile exists
@@ -109,6 +109,7 @@ class UserService {
         gallery,
         socialLinks,
         isAvailable,
+        dailyBookingLimit: dailyBookingLimit !== undefined ? parseInt(dailyBookingLimit, 10) : undefined,
       },
     });
   }

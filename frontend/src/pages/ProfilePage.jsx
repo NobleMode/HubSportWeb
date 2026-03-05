@@ -5,6 +5,7 @@ import {
 } from "../services/authApi";
 import { useUpgradeToExpertMutation, useUpdateExpertProfileMutation } from "../services/userApi";
 import { useGetMyTransactionsQuery } from '../services/transactionApi';
+import { useGetMyBookingsQuery } from '../services/bookingApi';
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import Button from "../components/common/Button";
 
@@ -22,6 +23,10 @@ const ProfilePage = () => {
   // Transaction Query
   const { data: transactionResponse, isLoading: isTransactionsLoading } = useGetMyTransactionsQuery();
   const transactions = transactionResponse?.data || [];
+
+  // Bookings Query
+  const { data: bookingsResponse, isLoading: isBookingsLoading } = useGetMyBookingsQuery();
+  const myBookings = bookingsResponse?.data || [];
 
   const user = userResponse?.data;
   
@@ -46,6 +51,7 @@ const ProfilePage = () => {
     videoUrl: "",
     imageUrl: "",
     isAvailable: true,
+    dailyBookingLimit: 3,
     socialLinks: {
       facebook: "",
       instagram: "",
@@ -72,7 +78,7 @@ const ProfilePage = () => {
   // Pre-fill Expert Data if exists
   useEffect(() => {
     if (user?.expertProfile) {
-      const { bio, specialization, level, hourlyRate, videoUrl, imageUrl, socialLinks, isAvailable } = user.expertProfile;
+      const { bio, specialization, level, hourlyRate, videoUrl, imageUrl, socialLinks, isAvailable, dailyBookingLimit } = user.expertProfile;
       setExpertFormData({
         bio: bio || "",
         specialization: specialization || "",
@@ -81,6 +87,7 @@ const ProfilePage = () => {
         videoUrl: videoUrl || "",
         imageUrl: imageUrl || "",
         isAvailable: isAvailable ?? true,
+        dailyBookingLimit: dailyBookingLimit ?? 3,
         socialLinks: {
           facebook: socialLinks?.facebook || "",
           instagram: socialLinks?.instagram || "",
@@ -200,6 +207,14 @@ const ProfilePage = () => {
              >
                 Transaction History
              </button>
+             {formData.role === "EXPERT" && (
+               <button
+                  className={`py-3 px-6 font-medium focus:outline-none ${activeTab === 'bookings' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
+                  onClick={() => setActiveTab('bookings')}
+               >
+                  My Bookings
+               </button>
+             )}
         </div>
 
         <div className="p-6">
@@ -335,7 +350,7 @@ const ProfilePage = () => {
                   </form>
                 </div>
               </div>
-          ) : (
+          ) : activeTab === 'transactions' ? (
              /* Transaction History Tab */
              <div className="space-y-4">
                  <h2 className="text-xl font-semibold mb-4 text-gray-800">Transaction History</h2>
@@ -382,7 +397,59 @@ const ProfilePage = () => {
                      </div>
                  )}
              </div>
-          )}
+          ) : activeTab === 'bookings' && formData.role === "EXPERT" ? (
+             /* My Bookings Tab Content */
+             <div className="space-y-4">
+                 <h2 className="text-xl font-semibold mb-4 text-gray-800">My Bookings</h2>
+                 
+                 {isBookingsLoading ? (
+                     <div className="flex justify-center p-8"><LoadingSpinner /></div>
+                 ) : myBookings.length === 0 ? (
+                     <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">No incoming bookings found.</div>
+                 ) : (
+                     <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Value</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {myBookings.map((b) => (
+                                    <tr key={b.id}>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                                            {new Date(b.bookingDate).toLocaleString()}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {b.user?.name || b.user?.email || 'Unknown'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {b.duration} hour(s)
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
+                                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(b.totalAmount)}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800`}>
+                                                {b.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                                            {b.notes || '-'}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                     </div>
+                 )}
+             </div>
+          ) : null}
         
           {/* Expert Profile View - Only show in Profile Tab */}
           {activeTab === 'profile' && formData.role === "EXPERT" && user?.expertProfile && (
@@ -578,6 +645,23 @@ const ProfilePage = () => {
                             required
                           />
                         </div>
+                        {formData.role === "EXPERT" && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Daily Session Limit (Maximum bookings/day)
+                            </label>
+                            <input
+                              type="number"
+                              name="dailyBookingLimit"
+                              value={expertFormData.dailyBookingLimit}
+                              onChange={handleExpertChange}
+                              className="input-field w-full"
+                              min="1"
+                              max="24"
+                              required
+                            />
+                          </div>
+                        )}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Bio / Introduction

@@ -101,7 +101,9 @@ process.on("uncaughtException", (err) => {
   process.exit(1);
 });
 
-// Start the server
-startServer();
+// Start the server ONLY in local development
+if (process.env.SETUP_ENV !== 'Vercel') {
+  startServer();
+}
 
 export default app;

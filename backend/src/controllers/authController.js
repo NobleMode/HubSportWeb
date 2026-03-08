@@ -235,12 +235,14 @@ class AuthController {
    * Helper to set Token Cookie
    */
   setTokenCookie(res, token) {
-    const isProduction = process.env.NODE_ENV === "production";
+    // If backend is on Vercel, it is always HTTPS and needs cross-site cookies
+    const isVercel = process.env.SETUP_ENV === "Vercel";
+    
     const cookieOptions = {
       httpOnly: true,
-      secure: isProduction, // HTTPS required in Prod
+      secure: isVercel ? true : false, // Must be true for SameSite=None
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-      sameSite: isProduction ? "none" : "lax", // 'none' allows cross-domain in Prod, 'lax' is better for localhost
+      sameSite: isVercel ? "none" : "lax", // 'none' allows local frontend to talk to Vercel backend
     };
 
     res.cookie("refreshToken", token, cookieOptions);

@@ -141,6 +141,44 @@ class OrderController {
   }
 
   /**
+   * Admin: Update order status manually
+   * PATCH /api/orders/:id/status
+   */
+  async updateStatus(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      if (req.user.role !== 'ADMIN') {
+        return res.status(403).json({ success: false, message: 'Admin only' });
+      }
+
+      const updatedOrder = await orderService.updateOrderStatus(id, status);
+      res.status(200).json({ success: true, data: updatedOrder, message: 'Status updated' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Admin: Process item return
+   * PATCH /api/orders/items/:itemId/return
+   */
+  async returnItem(req, res, next) {
+    try {
+      const { itemId } = req.params;
+      if (req.user.role !== 'ADMIN') {
+        return res.status(403).json({ success: false, message: 'Admin only' });
+      }
+
+      const returnedItem = await orderService.returnOrderItem(itemId, req.body);
+      res.status(200).json({ success: true, data: returnedItem, message: 'Item returned successfully' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Get order details by ID
    * GET /api/orders/:id
    */

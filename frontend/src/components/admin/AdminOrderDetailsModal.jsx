@@ -1,23 +1,38 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Button from '../common/Button';
 import { useToast } from '../../context/ToastContext';
-// Import API hooks (we'll assume they exist or need to be created/exported)
-// Actually we need to add these endpoints to orderApi.js or similar on frontend
-import { useUpdateOrderItemImagesMutation, useReportOrderItemIssueMutation } from '../../services/orderApi';
+import { 
+    useUpdateOrderItemImagesMutation, 
+    useReportOrderItemIssueMutation,
+    useUpdateOrderStatusMutation,
+    useReturnOrderItemMutation
+} from '../../services/orderApi';
 import { getImageUrl } from '../../utils/imageUtils';
 
 const AdminOrderDetailsModal = ({ order, onClose, onUpdate }) => {
     const { showToast } = useToast();
-    const [updateImages, { isLoading: isUploading }] = useUpdateOrderItemImagesMutation();
-    const [reportIssue, { isLoading: isReporting }] = useReportOrderItemIssueMutation();
+    const [updateImages] = useUpdateOrderItemImagesMutation();
+    const [reportIssue] = useReportOrderItemIssueMutation();
+    const [updateStatus, { isLoading: isUpdatingStatus }] = useUpdateOrderStatusMutation();
+    const [returnItem] = useReturnOrderItemMutation();
     
-    // Local state for tracking uploads/reports to avoid refreshing entire parent constantly
-    // or we can just refetch. Refetching is safer.
-
     if (!order) return null;
 
     const rentalItems = order.orderItems.filter(item => item.isRental);
     const saleItems = order.orderItems.filter(item => !item.isRental);
+
+    const handleStatusChange = async (e) => {
+        const newStatus = e.target.value;
+        if (window.confirm(`Change order status to ${newStatus}?`)) {
+            try {
+                await updateStatus({ id: order.id, status: newStatus }).unwrap();
+                showToast('Order status updated', 'success');
+                if (onUpdate) onUpdate();
+            } catch (err) {
+                showToast('Failed to update status', 'error');
+            }
+        }
+    };
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
@@ -46,22 +61,35 @@ const AdminOrderDetailsModal = ({ order, onClose, onUpdate }) => {
                         </div>
                         <div className="bg-gray-50 p-4 rounded-lg">
                             <h3 className="font-semibold text-gray-700 mb-2">Order Info</h3>
-                            <p className="text-sm"><span className="text-gray-500">Date:</span> {new Date(order.createdAt).toLocaleString()}</p>
-                            <p className="text-sm"><span className="text-gray-500">Status:</span> <span className="font-bold">{order.status}</span></p>
-                            <p className="text-sm"><span className="text-gray-500">Payment:</span> {order.paymentMethod}</p>
+                            <p className="text-sm mb-1"><span className="text-gray-500">Date:</span> {new Date(order.createdAt).toLocaleString()}</p>
+                            <p className="text-sm mb-2 text-gray-500">Status:</p>
+                            <select 
+                                className="w-full border-gray-300 rounded-md text-sm font-semibold p-1"
+                                value={order.status}
+                                onChange={handleStatusChange}
+                                disabled={isUpdatingStatus}
+                            >
+                                <option value="PENDING">PENDING</option>
+                                <option value="CONFIRMED">CONFIRMED</option>
+                                <option value="SHIPPED">SHIPPED</option>
+                                <option value="DELIVERED">DELIVERED</option>
+                                <option value="RETURNED">RETURNED</option>
+                                <option value="CANCELLED">CANCELLED</option>
+                            </select>
+                            <p className="text-sm mt-2"><span className="text-gray-500">Payment:</span> {order.paymentMethod}</p>
                         </div>
                         <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                             <h3 className="font-semibold text-blue-800 mb-2">Financials</h3>
                             <div className="flex justify-between text-sm mb-1">
-                                <span className="text-blue-600">Rental/Sale Fee:</span>
+                                <span className="text-blue-600">Total Order Amount:</span>
                                 <span className="font-bold">{order.totalAmount.toLocaleString('vi-VN')}đ</span>
                             </div>
                             <div className="flex justify-between text-sm mb-2">
-                                <span className="text-blue-600">Deposit:</span>
+                                <span className="text-blue-600">Total Deposit:</span>
                                 <span className="font-bold">{order.totalDeposit.toLocaleString('vi-VN')}đ</span>
                             </div>
                             <div className="border-t border-blue-200 pt-2 flex justify-between font-bold text-lg text-blue-900">
-                                <span>Total:</span>
+                                <span>Grand Total:</span>
                                 <span>{(order.totalAmount + order.totalDeposit).toLocaleString('vi-VN')}đ</span>
                             </div>
                         </div>
@@ -83,6 +111,7 @@ const AdminOrderDetailsModal = ({ order, onClose, onUpdate }) => {
                                         item={item} 
                                         onUpdateImages={updateImages}
                                         onReportIssue={reportIssue}
+                                        onReturnItem={returnItem}
                                     />
                                 ))}
                             </div>
@@ -133,7 +162,7 @@ const AdminOrderDetailsModal = ({ order, onClose, onUpdate }) => {
     );
 };
 
-const RentalItemRow = ({ item, onUpdateImages, onReportIssue }) => {
+const RentalItemRow = ({ item, onUpdateImages, onReportIssue, onReturnItem }) => {
     // Determine status color
     const getStatusColor = (condition) => {
         switch(condition) {
@@ -143,8 +172,6 @@ const RentalItemRow = ({ item, onUpdateImages, onReportIssue }) => {
             default: return 'bg-gray-100 text-gray-800';
         }
     };
-    
-    // Handlers for "Quick Actions" could go here or inside subsections
 
     return (
         <div className="bg-white border rounded-lg p-4 shadow-sm">
@@ -160,6 +187,12 @@ const RentalItemRow = ({ item, onUpdateImages, onReportIssue }) => {
                             </span>
                             {item.damageFee > 0 && (
                                 <span className="text-xs font-medium text-red-600">Damage Fee: {item.damageFee.toLocaleString('vi-VN')}đ</span>
+                            )}
+                            {item.lateFee > 0 && (
+                                <span className="text-xs font-medium text-orange-600">Late Fee: {item.lateFee.toLocaleString('vi-VN')}đ</span>
+                            )}
+                            {item.returnedAt && (
+                                <span className="text-xs font-medium text-green-600">Returned</span>
                             )}
                         </div>
                     </div>
@@ -183,24 +216,15 @@ const RentalItemRow = ({ item, onUpdateImages, onReportIssue }) => {
                 />
             </div>
             
-            <div className="mt-4 pt-4 border-t flex justify-end">
-                 <ReportIssueButton item={item} onReport={onReportIssue} />
+            <div className="mt-4 pt-4 border-t flex justify-end gap-2">
+                {!item.returnedAt && <ReturnItemButton item={item} onReturn={onReturnItem} />}
+                <ReportIssueButton item={item} onReport={onReportIssue} />
             </div>
         </div>
     );
 };
 
 const ImageUploadSection = ({ title, images, onUpload }) => {
-    // Simplified placeholder for upload logic
-    // In real app, we would use a file input and upload to cloud/server first, then save URL.
-    // For now, let's assume we maintain a list of URLs and can add more via a prompt or simple input for demo?
-    // User asked for "upload item".
-    // I should provide a proper file input if possible, but "uploadApi" exists in codebase?
-    // I'll leave it as a placeholder UI that prompts for URL or uses a mock upload for now unless I find `uploadApi` usage.
-    
-    // I'll stick to a simple UI that "simulates" or allows text input for now to be safe, or just a "Upload" button that does nothing but log.
-    // Actually, I can use `window.prompt` for URL to keep it simple as I don't have a full file upload component ready in this context.
-    
     const handleAdd = () => {
         const url = window.prompt("Enter image URL (simulation):");
         if (url) {
@@ -232,6 +256,7 @@ const ReportIssueButton = ({ item, onReport }) => {
     const [fee, setFee] = useState(item.damageFee || 0);
     const [notes, setNotes] = useState(item.notes || '');
     const [condition, setCondition] = useState(item.condition || 'DAMAGED');
+    const { showToast } = useToast();
 
     if (!isOpen) {
         return (
@@ -241,35 +266,94 @@ const ReportIssueButton = ({ item, onReport }) => {
         );
     }
 
-    const handleSubmit = () => {
-        onReport({ itemId: item.id, condition, damageFee: fee, notes });
-        setIsOpen(false);
+    const handleSubmit = async () => {
+        try {
+            await onReport({ itemId: item.id, condition, damageFee: fee, notes }).unwrap();
+            showToast('Issue reported successfully', 'success');
+            setIsOpen(false);
+        } catch (e) {
+            showToast('Failed to report issue', 'error');
+        }
     };
 
     return (
-        <div className="bg-red-50 p-4 rounded-lg w-full border border-red-100">
+        <div className="bg-red-50 p-4 rounded-lg w-full border border-red-100 mt-2">
             <h4 className="font-bold text-red-800 mb-3">Report Damage / Issue</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
                 <div>
                      <label className="block text-xs font-semibold text-red-700 mb-1">Condition</label>
-                     <select value={condition} onChange={e => setCondition(e.target.value)} className="w-full text-sm border-gray-300 rounded p-1.5">
+                     <select value={condition} onChange={e => setCondition(e.target.value)} className="w-full text-sm border-gray-300 rounded p-1.5 focus:outline-none focus:ring-1 focus:ring-red-500">
                          <option value="GOOD">Good (Resolved)</option>
                          <option value="DAMAGED">Damaged</option>
-                         <option value="Em">Lost</option>
+                         <option value="LOST">Lost</option>
                      </select>
                 </div>
                 <div>
-                     <label className="block text-xs font-semibold text-red-700 mb-1">Damage Fee</label>
-                     <input type="number" value={fee} onChange={e => setFee(e.target.value)} className="w-full text-sm border-gray-300 rounded p-1.5" />
+                     <label className="block text-xs font-semibold text-red-700 mb-1">Damage Fee (VND)</label>
+                     <input type="number" min="0" value={fee} onChange={e => setFee(e.target.value)} className="w-full text-sm border-gray-300 rounded p-1.5 focus:outline-none focus:ring-1 focus:ring-red-500" />
                 </div>
                 <div>
                      <label className="block text-xs font-semibold text-red-700 mb-1">Notes</label>
-                     <input type="text" value={notes} onChange={e => setNotes(e.target.value)} className="w-full text-sm border-gray-300 rounded p-1.5" placeholder="Describe damage..." />
+                     <input type="text" value={notes} onChange={e => setNotes(e.target.value)} className="w-full text-sm border-gray-300 rounded p-1.5 focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="Describe damage..." />
                 </div>
             </div>
             <div className="flex justify-end gap-2">
                 <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>Cancel</Button>
                 <Button size="sm" variant="danger" onClick={handleSubmit}>Save Report</Button>
+            </div>
+        </div>
+    );
+};
+
+const ReturnItemButton = ({ item, onReturn }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [lateFee, setLateFee] = useState(item.lateFee || 0);
+    const [notes, setNotes] = useState(item.notes || '');
+    const [condition, setCondition] = useState(item.condition || 'GOOD');
+    const { showToast } = useToast();
+
+    if (!isOpen) {
+        return (
+             <Button variant="primary" size="sm" onClick={() => setIsOpen(true)}>
+                Return Product
+             </Button>
+        );
+    }
+
+    const handleSubmit = async () => {
+        try {
+            await onReturn({ itemId: item.id, data: { condition, lateFee, notes } }).unwrap();
+            showToast('Item returned successfully', 'success');
+            setIsOpen(false);
+        } catch (e) {
+            showToast('Failed to return item', 'error');
+        }
+    };
+
+    return (
+        <div className="bg-blue-50 p-4 rounded-lg w-full border border-blue-100 mt-2">
+            <h4 className="font-bold text-blue-800 mb-3">Process Return</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                <div>
+                     <label className="block text-xs font-semibold text-blue-700 mb-1">Condition Upon Return</label>
+                     <select value={condition} onChange={e => setCondition(e.target.value)} className="w-full text-sm border-gray-300 rounded p-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                         <option value="GOOD">Good</option>
+                         <option value="DAMAGED">Damaged</option>
+                         <option value="LOST">Lost</option>
+                     </select>
+                </div>
+                <div>
+                     <label className="block text-xs font-semibold text-blue-700 mb-1">Late Fee (VND) if any</label>
+                     <input type="number" min="0" value={lateFee} onChange={e => setLateFee(e.target.value)} className="w-full text-sm border-gray-300 rounded p-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                </div>
+                <div>
+                     <label className="block text-xs font-semibold text-blue-700 mb-1">Return Notes</label>
+                     <input type="text" value={notes} onChange={e => setNotes(e.target.value)} className="w-full text-sm border-gray-300 rounded p-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="e.g. Returned 1 day late" />
+                </div>
+            </div>
+            <div className="flex justify-end gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>Cancel</Button>
+                <Button size="sm" variant="primary" onClick={handleSubmit}>Confirm Return</Button>
             </div>
         </div>
     );

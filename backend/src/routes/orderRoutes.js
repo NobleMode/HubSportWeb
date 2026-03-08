@@ -57,4 +57,18 @@ router.patch('/items/:itemId/images', orderController.updateOrderItemImages.bind
  */
 router.patch('/items/:itemId/report', orderController.reportOrderItemIssue.bind(orderController));
 
+/**
+ * @route   PATCH /api/orders/items/:itemId/return
+ * @desc    Process item return (Admin)
+ * @access  Private (Admin)
+ */
+router.patch('/items/:itemId/return', orderController.returnItem.bind(orderController));
+
+/**
+ * @route   PATCH /api/orders/:id/status
+ * @desc    Manually update order status (Admin)
+ * @access  Private (Admin)
+ */
+router.patch('/:id/status', orderController.updateStatus.bind(orderController));
+
 export default router;

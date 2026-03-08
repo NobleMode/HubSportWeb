@@ -102,9 +102,13 @@ class OrderService {
     return await prisma.order.findMany({
       where: { userId },
       include: {
-        orderItems: {
+        shopOrders: {
           include: {
-            product: true,
+            orderItems: {
+              include: {
+                product: true,
+              },
+            },
           },
         },
       },
@@ -125,9 +129,13 @@ class OrderService {
             email: true,
           },
         },
-        orderItems: {
+        shopOrders: {
           include: {
-            product: true,
+            orderItems: {
+              include: {
+                product: true,
+              },
+            },
           },
         },
       },
@@ -151,13 +159,17 @@ class OrderService {
             address: true
           }
         },
-        orderItems: {
+        shopOrders: {
           include: {
-            product: true,
-            productItem: true, // Include specific product item info if assigned
+            orderItems: {
+              include: {
+                product: true,
+                productItem: true, // Include specific product item info if assigned
+              },
+            },
+            shipment: true,
           },
         },
-        shipment: true,
         maintenanceLogs: true,
       },
     });
@@ -213,7 +225,119 @@ class OrderService {
         });
       }
 
+    });
+  }
+
+  /**
+   * Admin: Update order status manually
+   */
+  async updateOrderStatus(orderId, status) {
+    const order = await prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) throw new Error("Order not found");
+
+    return await prisma.$transaction(async (tx) => {
+      // Update Main Order
+      const updatedOrder = await tx.order.update({
+        where: { id: orderId },
+        data: { status },
+      });
+
+      // Update nested ShopOrders
+      await tx.shopOrder.updateMany({
+        where: { orderId },
+        data: { status },
+      });
+
+      // Handle specific status effects (e.g., RETURNED, CANCELLED)
+      if (status === "RETURNED" || status === "CANCELLED") {
+        const orderItems = await tx.orderItem.findMany({
+          where: { shopOrder: { orderId } },
+          select: { productItemId: true },
+        });
+
+        const productItemIds = orderItems
+          .map((i) => i.productItemId)
+          .filter((id) => id !== null);
+
+        if (productItemIds.length > 0) {
+          await tx.productItem.updateMany({
+            where: { id: { in: productItemIds } },
+            data: { status: "AVAILABLE" },
+          });
+        }
+      }
+
       return updatedOrder;
+    });
+  }
+
+  /**
+   * Admin: Process a return for a specific rental item
+   */
+  async returnOrderItem(itemId, returnData) {
+    const { condition, lateFee, notes, imagesAfter } = returnData;
+
+    return await prisma.$transaction(async (tx) => {
+      // 1. Update OrderItem
+      const item = await tx.orderItem.update({
+        where: { id: itemId },
+        data: {
+          returnedAt: new Date(),
+          condition,
+          lateFee: lateFee ? parseFloat(lateFee) : 0,
+          notes,
+          rentalImagesAfter: imagesAfter || [],
+        },
+      });
+
+      // 2. Free up the physical product item
+      if (item.productItemId) {
+        await tx.productItem.update({
+          where: { id: item.productItemId },
+          data: { status: condition === "DAMAGED" || condition === "LOST" ? "MAINTENANCE" : "AVAILABLE" },
+        });
+      }
+
+      return item;
+    });
+  }
+
+  /**
+   * Admin: Report damage or issue for a rental item
+   */
+  async reportOrderItemDamage(itemId, reportData) {
+    const { condition, damageFee, notes } = reportData;
+
+    return await prisma.$transaction(async (tx) => {
+      // 1. Update OrderItem
+      const item = await tx.orderItem.update({
+        where: { id: itemId },
+        data: {
+          condition,
+          damageFee: damageFee ? parseFloat(damageFee) : 0,
+          notes,
+        },
+      });
+
+      // 2. Put product item into maintenance
+      if (item.productItemId) {
+        await tx.productItem.update({
+          where: { id: item.productItemId },
+          data: { status: "MAINTENANCE" },
+        });
+
+        // Optional: Auto-create maintenance log
+        await tx.maintenanceLog.create({
+          data: {
+            productItemId: item.productItemId,
+            type: "Damage Report",
+            description: notes || `Reported as ${condition}`,
+            cost: damageFee ? parseFloat(damageFee) : 0,
+          }
+        });
+      }
+
+      return item;
     });
   }
 }

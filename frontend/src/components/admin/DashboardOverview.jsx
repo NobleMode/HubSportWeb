@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useGetProductsQuery } from '../../services/productApi';
 import { useGetAllOrdersQuery } from '../../services/orderApi';
 import { useGetUsersQuery } from '../../services/userApi';
@@ -76,16 +76,20 @@ const DashboardOverview = ({ setActiveTab }) => {
     const ordersCount = ordersData?.data?.length || 0;
     const usersCount = usersData?.data?.length || 0;
     
-    // Calculate total revenue from orders (simplified)
-    const totalRevenue = ordersData?.data?.reduce((acc, order) => {
-        return order.status !== 'CANCELLED' ? acc + order.totalAmount : acc;
-    }, 0) || 0;
+    // Calculate total revenue and total deposits from orders
+    const { totalRevenue, totalDeposits } = ordersData?.data?.reduce((acc, order) => {
+        if (order.status !== 'CANCELLED') {
+            acc.totalRevenue += order.totalAmount || 0;
+            acc.totalDeposits += order.totalDeposit || 0;
+        }
+        return acc;
+    }, { totalRevenue: 0, totalDeposits: 0 }) || { totalRevenue: 0, totalDeposits: 0 };
 
     return (
         <div className="space-y-6">
             <h2 className="text-2xl font-bold mb-6">Dashboard Overview</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <StatCard 
                     title="Total Orders" 
                     value={ordersCount} 
@@ -109,9 +113,16 @@ const DashboardOverview = ({ setActiveTab }) => {
                 />
                 <StatCard 
                     title="Total Revenue" 
-                    value={`${(totalRevenue / 1000000).toFixed(1)}M VND`} 
+                    value={`${(totalRevenue / 1000).toLocaleString()}k ₫`} 
                     icon="💰" 
                     color="bg-yellow-100 text-yellow-600" 
+                    onClick={() => setActiveTab && setActiveTab('orders')}
+                />
+                <StatCard 
+                    title="Total Deposits Held" 
+                    value={`${(totalDeposits / 1000).toLocaleString()}k ₫`} 
+                    icon="🛡️" 
+                    color="bg-indigo-100 text-indigo-600" 
                     onClick={() => setActiveTab && setActiveTab('orders')}
                 />
             </div>

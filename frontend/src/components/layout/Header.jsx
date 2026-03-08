@@ -59,9 +59,9 @@ const Header = () => {
             to="/"
             className="text-2xl font-extrabold tracking-tight text-gray-900 group"
           >
-            Sport
+            EXERC
             <span className="text-electricBlue group-hover:text-limeGreen transition-colors">
-              Hub
+              ISER
             </span>
           </Link>
 

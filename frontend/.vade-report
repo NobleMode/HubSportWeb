@@ -1,0 +1,51 @@
+# Vercel Web Analytics Integration
+
+## Summary
+Successfully integrated Vercel Web Analytics into the HubSportWeb frontend application.
+
+## Changes Made
+
+### 1. Added @vercel/analytics Package
+- Installed `@vercel/analytics` package using npm
+- Updated `package.json` with the new dependency
+- Updated `package-lock.json` with dependency tree
+
+### 2. Integrated Analytics Component
+**Modified:** `src/App.jsx`
+- Added import statement: `import { Analytics } from "@vercel/analytics/react";`
+- Added `<Analytics />` component inside the Router, after the ToastProvider
+- The Analytics component will now track page views and user interactions across all routes
+
+### 3. Added ESLint Configuration
+**Created:** `.eslintrc.cjs`
+- Added ESLint configuration file to enable code linting
+- Configured for React 18.2 with modern JavaScript (ES2020)
+- Included recommended ESLint rules and React-specific plugins
+
+## Implementation Details
+
+The Analytics component was placed inside the `<Router>` component but outside the `<MainLayout>` and `<ToastProvider>` components. This placement ensures:
+- The tracking script loads once for the entire application
+- Route changes are automatically tracked by the Vercel Analytics system
+- Analytics data is collected without interfering with the app's UI structure
+
+## Testing
+
+✅ Build completed successfully with `npm run build`
+✅ No new linting errors introduced by the Analytics integration
+✅ Package installed and dependencies resolved correctly
+
+## Next Steps
+
+To enable analytics on Vercel:
+1. Deploy the application to Vercel
+2. Navigate to the project in the Vercel dashboard
+3. Click the "Analytics" tab
+4. Click "Enable" to activate Web Analytics
+5. After the next deployment, analytics will be active at `/_vercel/insights/*`
+
+## Notes
+
+- The Analytics component works seamlessly with React Router for automatic route tracking
+- No additional configuration is required; analytics will work in production by default
+- The implementation follows Vercel's official guide for React applications

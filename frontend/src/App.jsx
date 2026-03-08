@@ -17,6 +17,7 @@ import {
   useGetProfileQuery,
   useRefreshTokenMutation,
 } from "./services/authApi";
+import { Analytics } from "@vercel/analytics/react";
 
 // Pages
 import HomePage from "./pages/HomePage";
@@ -177,6 +178,7 @@ function App() {
           </Routes>
         </MainLayout>
       </ToastProvider>
+      <Analytics />
     </Router>
   );
 }

@@ -12,13 +12,14 @@ class ProductController {
    */
   async getAllProducts(req, res, next) {
     try {
-      const { type, category, isActive, search, minPrice, maxPrice } =
+      const { type, category, isActive, isRecommended, search, minPrice, maxPrice } =
         req.query;
 
       const products = await productService.getAllProducts({
         type,
         category,
         isActive: isActive === "false" ? false : true,
+        ...(isRecommended !== undefined && { isRecommended: isRecommended === "true" }),
         search,
         minPrice,
         maxPrice,

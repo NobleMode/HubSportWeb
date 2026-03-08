@@ -13,6 +13,7 @@ class ProductService {
       type,
       category,
       isActive = true,
+      isRecommended,
       search,
       minPrice,
       maxPrice,
@@ -23,6 +24,7 @@ class ProductService {
       isActive,
       ...(type && { type }),
       ...(category && { category }),
+      ...(isRecommended !== undefined && { isRecommended }),
       ...(shopId && { shopId }),
     };
 

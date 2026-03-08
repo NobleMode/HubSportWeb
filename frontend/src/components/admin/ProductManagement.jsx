@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useGetProductsQuery, useDeleteProductMutation, useCreateProductMutation, useUpdateProductMutation } from '../../services/productApi';
 import LoadingSpinner from '../common/LoadingSpinner';
 import Button from '../common/Button';
@@ -24,6 +24,7 @@ const ProductManagement = () => {
         category: '',
         brand: '',
         imageUrl: '',
+        images: [],
         type: 'SALE',
         stock: 0,
         salePrice: 0,
@@ -49,10 +50,12 @@ const ProductManagement = () => {
                 category: product.category,
                 brand: product.brand,
                 imageUrl: product.imageUrl || '',
+                images: product.images || [],
                 type: product.type,
                 stock: product.stock,
                 salePrice: product.salePrice || 0,
                 rentalPrice: product.rentalPrice || 0,
+                isRecommended: product.isRecommended || false,
             });
         } else {
             setEditingProduct(null);
@@ -62,10 +65,12 @@ const ProductManagement = () => {
                 category: '',
                 brand: '',
                 imageUrl: '',
+                images: [],
                 type: 'SALE',
                 stock: 0,
                 salePrice: 0,
                 rentalPrice: 0,
+                isRecommended: false,
             });
         }
         setIsModalOpen(true);
@@ -243,14 +248,21 @@ const ProductManagement = () => {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Category</label>
-                            <input
-                                type="text"
+                            <select
                                 name="category"
                                 required
                                 className="input-field mt-1"
                                 value={formData.category}
                                 onChange={handleInputChange}
-                            />
+                            >
+                                <option value="">Select Category</option>
+                                <option value="Racket">Racket</option>
+                                <option value="Shoes">Shoes</option>
+                                <option value="Apparel">Apparel</option>
+                                <option value="Accessories">Accessories</option>
+                                <option value="Balls">Balls</option>
+                                <option value="Bags">Bags</option>
+                            </select>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Brand</label>
@@ -265,6 +277,20 @@ const ProductManagement = () => {
                         </div>
                     </div>
 
+                    <div className="flex items-center space-x-2">
+                        <input
+                            type="checkbox"
+                            id="isRecommended"
+                            name="isRecommended"
+                            checked={formData.isRecommended}
+                            onChange={(e) => setFormData(prev => ({ ...prev, isRecommended: e.target.checked }))}
+                            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="isRecommended" className="text-sm font-medium text-gray-700 mt-1">
+                            Mark as Recommended
+                        </label>
+                    </div>
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Description</label>
                         <textarea
@@ -276,21 +302,57 @@ const ProductManagement = () => {
                         />
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-4 border p-4 rounded-md">
+                        <h4 className="font-semibold text-gray-700">Main Product Image</h4>
                         <ImageUpload
                             value={formData.imageUrl}
                             onChange={(url) => setFormData(prev => ({ ...prev, imageUrl: url }))}
                         />
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Or enter Image URL</label>
+                            <label className="block text-xs font-medium text-gray-500">Or use external URL</label>
                             <input
                                 type="text"
                                 name="imageUrl"
                                 placeholder="https://..."
-                                className="input-field mt-1"
+                                className="input-field mt-1 text-sm"
                                 value={formData.imageUrl}
                                 onChange={handleInputChange}
                             />
+                        </div>
+                    </div>
+
+                    <div className="space-y-4 border p-4 rounded-md">
+                        <div className="flex justify-between items-center">
+                            <h4 className="font-semibold text-gray-700">Additional Images</h4>
+                            <Button 
+                                type="button" 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => {
+                                    const url = window.prompt("Enter image URL:");
+                                    if (url) {
+                                        setFormData(prev => ({ ...prev, images: [...prev.images, url] }));
+                                    }
+                                }}
+                            >
+                                + Add External URL
+                            </Button>
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-3">
+                            {formData.images.map((img, i) => (
+                                <div key={i} className="relative w-24 h-24 group">
+                                    <img src={img} alt="" className="w-full h-full object-cover rounded border" />
+                                    <button 
+                                        type="button"
+                                        onClick={() => setFormData(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }))}
+                                        className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm shadow-md transition-all"
+                                    >
+                                        &times;
+                                    </button>
+                                </div>
+                            ))}
+                            {/* In a real app we'd integrate ImageUpload here to upload actual files and push the returned URL to formData.images */}
                         </div>
                     </div>
 
@@ -325,7 +387,7 @@ const ProductManagement = () => {
                     
                     {formData.type === 'RENTAL' && (
                         <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700">Rental Stock (Managed via "Manage Items")</label>
+                            <label className="block text-sm font-medium text-gray-700">Rental Stock (Managed via &quot;Manage Items&quot;)</label>
                              <input
                                 type="number"
                                 disabled

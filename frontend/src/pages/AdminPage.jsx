@@ -4,6 +4,7 @@ import DashboardOverview from '../components/admin/DashboardOverview';
 import ProductManagement from '../components/admin/ProductManagement';
 import OrderManagement from '../components/admin/OrderManagement';
 import UserManagement from '../components/admin/UserManagement';
+import DiscountManagement from '../components/admin/DiscountManagement';
 
 /**
  * Admin Page (Protected - Admin Only)
@@ -21,6 +22,8 @@ const AdminPage = () => {
                 return <OrderManagement />;
             case 'users':
                 return <UserManagement />;
+            case 'discounts':
+                return <DiscountManagement />;
             default:
                 return <DashboardOverview />;
         }

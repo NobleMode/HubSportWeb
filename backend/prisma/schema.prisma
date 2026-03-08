@@ -71,6 +71,24 @@ enum TransactionType {
   INCOME
 }
 
+model Coupon {
+  id            String    @id @default(uuid())
+  code          String    @unique
+  discountValue Float // Either percentage or fixed amount
+  isPercentage  Boolean   @default(true)
+  maxDiscount   Float? // Cap for percentage discounts
+  minOrderValue Float?    @default(0)
+  startDate     DateTime? @default(now())
+  endDate       DateTime?
+  usageLimit    Int? // Null means unlimited
+  usageCount    Int       @default(0)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("coupons")
+}
+
 model User {
   id         String    @id @default(uuid())
   email      String    @unique
@@ -112,20 +130,22 @@ model Transaction {
 }
 
 model Product {
-  id          String      @id @default(uuid())
-  name        String
-  description String?
-  type        ProductType
-  salePrice   Float?
-  rentalPrice Float? // Price per day/hour
-  depositFee  Float?
-  category    String?
-  brand       String?
-  imageUrl    String?
-  stock       Int         @default(0)
-  isActive    Boolean     @default(true)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id            String      @id @default(uuid())
+  name          String
+  description   String?
+  type          ProductType
+  salePrice     Float?
+  rentalPrice   Float? // Price per day/hour
+  depositFee    Float?
+  category      String?
+  brand         String?
+  imageUrl      String?
+  images        String[]    @default([])
+  stock         Int         @default(0)
+  isActive      Boolean     @default(true)
+  isRecommended Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   // Marketplace
   shopId String?

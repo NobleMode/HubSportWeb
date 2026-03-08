@@ -8,6 +8,7 @@ import shopRoutes from "./shopRoutes.js";
 import transactionRoutes from "./transactionRoutes.js";
 import productItemRoutes from "./productItemRoutes.js";
 import bookingRoutes from "./bookingRoutes.js";
+import couponRoutes from "./couponRoutes.js";
 
 const router = express.Router();
 
@@ -34,5 +35,6 @@ router.use("/upload", uploadRoutes);
 router.use("/shops", shopRoutes);
 router.use("/transactions", transactionRoutes);
 router.use("/bookings", bookingRoutes);
+router.use("/coupons", couponRoutes);
 
 export default router;

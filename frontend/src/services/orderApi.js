@@ -49,6 +49,22 @@ export const orderApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Order'],
     }),
+    updateOrderStatus: builder.mutation({
+      query: ({ id, status }) => ({
+        url: `/orders/${id}/status`,
+        method: 'PATCH',
+        body: { status },
+      }),
+      invalidatesTags: ['Order'],
+    }),
+    returnOrderItem: builder.mutation({
+      query: ({ itemId, data }) => ({
+        url: `/orders/items/${itemId}/return`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['Order'],
+    }),
   }),
 });
 
@@ -60,4 +76,6 @@ export const {
   useGetOrderDetailsQuery,
   useUpdateOrderItemImagesMutation,
   useReportOrderItemIssueMutation,
+  useUpdateOrderStatusMutation,
+  useReturnOrderItemMutation,
 } = orderApi;

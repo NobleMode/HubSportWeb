@@ -4,7 +4,22 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- ✅ PERFORMANCE: DNS Prefetch & Preconnect -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- ✅ PERFORMANCE: Preload Critical Resources -->
+    <link rel="preload" href="/src/main.jsx" as="script" />
+    
     <title>SportHub Vietnam - E-commerce & Booking</title>
+    
+    <!-- ✅ PERFORMANCE: Optimize Font Loading with font-display swap -->
+    <style>
+      /* Prevent FOUT (Flash of Unstyled Text) */
+      body { font-family: system-ui, -apple-system, sans-serif; }
+    </style>
   </head>
   <body>
     <div id="root"></div>

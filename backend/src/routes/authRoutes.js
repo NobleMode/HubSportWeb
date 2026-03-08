@@ -88,4 +88,14 @@ router.post(
   authController.resetPassword.bind(authController),
 );
 
+/**
+ * @route   POST /api/auth/manual-verify
+ * @desc    Manually verify email (DEV MODE ONLY)
+ * @access  Public (Dev only)
+ */
+router.post(
+  "/manual-verify",
+  authController.manualVerify.bind(authController),
+);
+
 export default router;

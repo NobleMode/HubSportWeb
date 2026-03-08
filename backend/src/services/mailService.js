@@ -5,13 +5,24 @@ dotenv.config();
 
 class MailService {
   constructor() {
+    // Validate SMTP configuration
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.SMTP_PASS;
+    
+    if (!smtpUser || !smtpPass || smtpUser.includes("example.com")) {
+      console.warn(
+        "⚠️  SMTP credentials not configured! Update SMTP_USER and SMTP_PASS in .env"
+      );
+      console.warn("   Current settings will send emails to console only (development mode)");
+    }
+
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || "smtp-relay.brevo.com",
       port: process.env.SMTP_PORT || 587,
       secure: false, // true for 465, false for other ports
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: smtpUser,
+        pass: smtpPass,
       },
     });
   }
@@ -38,10 +49,11 @@ class MailService {
 
     try {
       const info = await this.transporter.sendMail(mailOptions);
-      console.log("Email sent: %s", info.messageId);
+      console.log("✅ Email sent successfully to:", email, "MessageID:", info.messageId);
       return true;
     } catch (error) {
-      console.error("Error sending email:", error);
+      console.error("❌ Error sending email to", email, ":", error.message);
+      console.error("   Make sure SMTP_USER and SMTP_PASS are correctly configured in .env");
       return false;
     }
   }

@@ -133,6 +133,7 @@ class AuthService {
 
   /**
    * Reset Password
+   * AUTO-VERIFIES email if not already verified
    */
   async resetPassword(email, otp, newPassword) {
     const user = await prisma.user.findUnique({ where: { email } });
@@ -156,8 +157,46 @@ class AuthService {
       where: { email },
       data: {
         password: newPassword, // FE sends HMAC hash
+        isVerified: true, // ✅ AUTO-VERIFY email on password reset
         otpCode: null,
         otpExpires: null,
+      },
+    });
+  }
+
+  /**
+   * Find user by email (Helper)
+   */
+  async findUserByEmail(email) {
+    return await prisma.user.findUnique({ where: { email } });
+  }
+
+  /**
+   * Manual verify email (DEV ONLY)
+   */
+  async manualVerifyEmail(email) {
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    return await prisma.user.update({
+      where: { email },
+      data: {
+        isVerified: true,
+        otpCode: null,
+        otpExpires: null,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        isVerified: true,
+        role: true,
+        createdAt: true,
       },
     });
   }

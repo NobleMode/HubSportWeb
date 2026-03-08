@@ -1,4 +1,5 @@
 import shopService from "../services/shopService.js";
+import prisma from "../config/database.js";
 
 /**
  * Shop Controller

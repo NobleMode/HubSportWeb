@@ -101,6 +101,16 @@ class AuthController {
   async forgotPassword(req, res, next) {
     try {
       const { email } = req.body;
+
+      // ✅ Validate user exists
+      const user = await authService.findUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "Email not found in our system",
+        });
+      }
+
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -279,6 +289,42 @@ class AuthController {
       res.status(200).json({
         success: true,
         message: "Profile updated successfully",
+        data: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Manual Email Verification (DEV ONLY)
+   * POST /api/auth/manual-verify
+   * For testing purposes when SMTP is not configured
+   */
+  async manualVerify(req, res, next) {
+    try {
+      // Only allow in development mode
+      if (process.env.NODE_ENV !== "development") {
+        return res.status(403).json({
+          success: false,
+          message: "This endpoint is only available in development mode",
+        });
+      }
+
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          message: "Email is required",
+        });
+      }
+
+      const user = await authService.manualVerifyEmail(email);
+
+      res.status(200).json({
+        success: true,
+        message: "Email verified manually (DEV MODE)",
         data: user,
       });
     } catch (error) {

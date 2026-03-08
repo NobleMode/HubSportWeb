@@ -20,7 +20,7 @@ const LandingPage = () => {
             </h1>
             <p className="text-xl text-gray-500 mb-8 leading-relaxed max-w-lg">
               Premium sports equipment rental and professional coaching. Unlock
-              your peak performance with SportHub.
+              your peak performance with EXERCISER.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
@@ -365,7 +365,7 @@ const LandingPage = () => {
               Ready to Level Up?
             </h2>
             <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto relative z-10">
-              Join SportHub Premium today. Get exclusive access to elite
+              Join EXERCISER Premium today. Get exclusive access to elite
               equipment, priority booking, and advanced analytics.
             </p>
             {isAuthenticated ? (
@@ -394,7 +394,7 @@ const LandingPage = () => {
       <footer className="bg-gray-50 py-12 border-t border-gray-200">
         <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-gray-500">
           <div className="mb-4 md:mb-0">
-            <span className="font-bold text-gray-900 text-xl">SportHub</span>
+            <span className="font-bold text-gray-900 text-xl">EXERCISER</span>
             <span className="ml-2 text-sm">© 2024</span>
           </div>
           <div className="flex gap-8 text-sm">

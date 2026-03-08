@@ -579,7 +579,7 @@ const ProductDetailsPage = () => {
               <div className="flex justify-between border-b border-gray-100 pb-2">
                 <span className="text-gray-500 font-medium">Brand</span>
                 <span className="text-gray-900 font-semibold">
-                  {product.brand || "SportHub"}
+                  {product.brand || "EXERCISER"}
                 </span>
               </div>
               <div className="flex justify-between border-b border-gray-100 pb-2">

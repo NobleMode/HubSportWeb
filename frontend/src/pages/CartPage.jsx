@@ -28,7 +28,7 @@ const CartPage = () => {
       const shopId = item.shop?.id || "unassigned";
       if (!acc[shopId]) {
         acc[shopId] = {
-          shopName: item.shop?.name || "HubSport Warehouse",
+          shopName: item.shop?.name || "EXERCISER Warehouse",
           items: [],
         };
       }

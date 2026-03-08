@@ -1,6 +1,6 @@
-# SportHub Vietnam Backend API
+# EXERCISER Vietnam Backend API
 
-Backend API for SportHub Vietnam E-commerce & Booking System built with Node.js, Express, and Prisma ORM.
+Backend API for EXERCISER Vietnam E-commerce & Booking System built with Node.js, Express, and Prisma ORM.
 
 ## Tech Stack
 
@@ -58,7 +58,7 @@ cp .env.example .env
 
 Edit `.env` file with your configuration:
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/sporthub_db"
+DATABASE_URL="postgresql://user:password@localhost:5432/exerciser_db"
 JWT_SECRET=your_secret_key
 PORT=5000
 CORS_ORIGIN=http://localhost:5173
@@ -141,7 +141,7 @@ npm run prisma:studio
 ## Default Credentials (After Seeding)
 
 **Admin Account:**
-- Email: admin@sporthub.vn
+- Email: admin@exerciser.vn
 - Password: admin123
 
 **Customer Account:**

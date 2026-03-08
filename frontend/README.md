@@ -1,6 +1,6 @@
-# SportHub Vietnam Frontend
+# EXERCISER Vietnam Frontend
 
-Frontend application for SportHub Vietnam E-commerce & Booking System built with React, Redux Toolkit, and Tailwind CSS.
+Frontend application for EXERCISER Vietnam E-commerce & Booking System built with React, Redux Toolkit, and Tailwind CSS.
 
 ## Tech Stack
 

@@ -32,7 +32,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
       </nav>
       <div className="p-4 border-t border-gray-100">
         <p className="text-xs text-center text-gray-400">
-          Sporthub Admin v1.0
+          EXERCISER Admin v1.0
         </p>
       </div>
     </div>

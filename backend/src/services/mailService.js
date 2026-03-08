@@ -31,12 +31,12 @@ class MailService {
 
   async sendOTP(email, otp) {
     const mailOptions = {
-      from: `"SportHub Vietnam" <${process.env.MAIL_SENDER}>`,
+      from: `"EXERCISER Vietnam" <${process.env.MAIL_SENDER}>`,
       to: email,
-      subject: "Mã xác thực OTP - SportHub Vietnam",
+      subject: "Mã xác thực OTP - EXERCISER Vietnam",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
-          <h2 style="color: #2c3e50; text-align: center;">Xác thực tài khoản SportHub</h2>
+          <h2 style="color: #2c3e50; text-align: center;">Xác thực tài khoản EXERCISER</h2>
           <p>Chào bạn,</p>
           <p>Mã OTP của bạn để hoàn tất đăng ký hoặc thiết lập lại mật khẩu là:</p>
           <div style="background-color: #f7f9fc; padding: 15px; text-align: center; border-radius: 5px;">

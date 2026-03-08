@@ -119,7 +119,7 @@ const PlayerDetailsPage = () => {
                     navigate('/login');
                     return;
                   }
-                  window.location.href = `mailto:${player.email}?subject=Inquiry from SportHub`;
+                  window.location.href = `mailto:${player.email}?subject=Inquiry from EXERCISER`;
                 }} variant="outline">
                   Contact
                 </Button>

@@ -8,7 +8,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* About */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">SportHub Vietnam</h3>
+            <h3 className="text-lg font-semibold mb-4">EXERCISER Vietnam</h3>
             <p className="text-gray-400">
               Your trusted partner for sports equipment sales and rentals.
             </p>
@@ -40,14 +40,14 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
             <p className="text-gray-400">
-              Email: support@sporthub.vn<br />
+              Email: support@exerciser.vn<br />
               Phone: +84 123 456 789
             </p>
           </div>
         </div>
 
         <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; 2024 SportHub Vietnam. All rights reserved.</p>
+          <p>&copy; 2024 EXERCISER Vietnam. All rights reserved.</p>
         </div>
       </div>
     </footer>

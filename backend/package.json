@@ -1,7 +1,7 @@
 {
-  "name": "sporthub-backend",
+  "name": "exerciser-backend",
   "version": "1.0.0",
-  "description": "SportHub Vietnam Backend API - E-commerce & Booking System",
+  "description": "EXERCISER Vietnam Backend API - E-commerce & Booking System",
   "main": "src/app.js",
   "type": "module",
   "scripts": {
@@ -21,7 +21,7 @@
     "sports",
     "e-commerce"
   ],
-  "author": "SportHub Vietnam Team",
+  "author": "EXERCISER Vietnam Team",
   "license": "MIT",
   "dependencies": {
     "@prisma/client": "^5.7.1",

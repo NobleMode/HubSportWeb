@@ -60,7 +60,7 @@ if (config.nodeEnv === "development") {
  */
 app.get("/", (req, res) => {
   res.json({
-    message: "Welcome to SportHub Vietnam API",
+    message: "Welcome to EXERCISER Vietnam API",
     version: "1.0.0",
     endpoints: {
       health: "/api/health",

@@ -60,7 +60,7 @@ const SellerRegistrationPage = () => {
       >
         <div className="text-center mb-10">
           <h1 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-600 sm:text-5xl">
-            Bắt đầu kinh doanh cùng SportHub
+            Bắt đầu kinh doanh cùng EXERCISER
           </h1>
           <p className="mt-4 text-xl text-gray-400">
             Mở shop của bạn ngay hôm nay và tiếp cận hàng ngàn khách hàng yêu
@@ -157,7 +157,7 @@ const SellerRegistrationPage = () => {
 
             <p className="text-center text-xs text-gray-500">
               Bằng cách nhấn nút "Mở Shop Ngay", bạn đồng ý với Điều khoản và
-              Quy định của Marketplace SportHub.
+              Quy định của Marketplace EXERCISER.
             </p>
           </form>
         </div>

@@ -27,7 +27,7 @@ const ShopsPage = () => {
             Cộng đồng <span className="text-amber-500">Người bán</span>
           </h1>
           <p className="mt-4 text-xl text-gray-400">
-            Khám phá các cửa hàng thể thao uy tín trên SportHub.
+            Khám phá các cửa hàng thể thao uy tín trên EXERCISER.
           </p>
         </header>
 

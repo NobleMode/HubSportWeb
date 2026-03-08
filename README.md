@@ -1,10 +1,10 @@
-# SportHub Vietnam - E-commerce & Booking System
+# EXERCISER Vietnam - E-commerce & Booking System
 
 A full-stack web application for sports equipment sales, rentals, and expert booking services. Built with Node.js, Express, Prisma ORM (Backend) and React, Redux Toolkit, Tailwind CSS (Frontend).
 
 ## 🚀 Project Overview
 
-SportHub Vietnam is a comprehensive platform that enables:
+EXERCISER Vietnam is a comprehensive platform that enables:
 - **E-commerce**: Buy sports equipment with secure payment processing
 - **Rental System**: Rent sports equipment with deposit management
 - **Expert Booking**: Schedule sessions with sports experts and trainers
@@ -13,7 +13,7 @@ SportHub Vietnam is a comprehensive platform that enables:
 ## 📁 Project Structure
 
 ```
-HubSportWeb/
+EXERCISERWeb/
 ├── backend/                    # Node.js + Express + Prisma backend
 │   ├── prisma/
 │   │   ├── schema.prisma      # Database schema
@@ -92,7 +92,7 @@ cp .env.example .env
 
 Edit `.env` file with your configuration:
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/sporthub_db"
+DATABASE_URL="postgresql://user:password@localhost:5432/exerciser_db"
 JWT_SECRET=your_secret_key
 PORT=5000
 CORS_ORIGIN=http://localhost:5173
@@ -152,7 +152,7 @@ Frontend will be running at `http://localhost:5173`
 ## 🔑 Default Credentials (After Seeding)
 
 **Admin Account:**
-- Email: `admin@sporthub.vn`
+- Email: `admin@exerciser.vn`
 - Password: `admin123`
 
 **Customer Account:**
@@ -283,7 +283,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📞 Support
 
-For support, email support@sporthub.vn or create an issue in the repository.
+For support, email support@exerciser.vn or create an issue in the repository.
 
 ---
 

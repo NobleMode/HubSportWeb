@@ -45,7 +45,9 @@ const OrderFailPage = lazy(() => import("./pages/OrderFailPage"));
 const PlayersPage = lazy(() => import("./pages/PlayersPage"));
 const PlayerDetailsPage = lazy(() => import("./pages/PlayerDetailsPage"));
 const OrderHistoryPage = lazy(() => import("./pages/OrderHistoryPage"));
-const SellerRegistrationPage = lazy(() => import("./pages/SellerRegistrationPage"));
+const SellerRegistrationPage = lazy(
+  () => import("./pages/SellerRegistrationPage"),
+);
 const ShopDetailsPage = lazy(() => import("./pages/ShopDetailsPage"));
 const SellerDashboardPage = lazy(() => import("./pages/SellerDashboardPage"));
 const VerifyOtpPage = lazy(() => import("./pages/VerifyOtpPage"));
@@ -66,7 +68,7 @@ function App() {
 
   // Refresh token mutation
   const [refreshToken] = useRefreshTokenMutation();
-  
+
   // ✅ FIX: Only fetch profile if we have a token (avoid retry loop)
   // Skip profile query when there's no token to prevent continuous 401 errors
   const {
@@ -98,7 +100,7 @@ function App() {
           }
         } catch (err) {
           // Silent fail - user just not authenticated
-          console.log('No valid refresh token found');
+          console.log("No valid refresh token found");
         } finally {
           dispatch(setLoading(false));
         }

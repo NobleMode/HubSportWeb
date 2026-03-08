@@ -244,7 +244,9 @@ class AuthService {
     }
 
     if (!user.isVerified) {
-      const error = new Error("Account not verified. Please verify your email.");
+      const error = new Error(
+        "Account not verified. Please verify your email.",
+      );
       error.statusCode = 403; // Forbidden until verified
       throw error;
     }

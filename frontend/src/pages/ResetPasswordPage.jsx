@@ -76,7 +76,9 @@ const ResetPasswordPage = () => {
               />
             </svg>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Mật khẩu mới</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            Mật khẩu mới
+          </h2>
           <p className="text-gray-500 text-sm">
             Vui lòng thiết lập mật khẩu mới cho tài khoản của bạn
           </p>

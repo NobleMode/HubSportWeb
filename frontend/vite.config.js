@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -7,8 +7,8 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': {
-        target: 'http://localhost:5000',
+      "/api": {
+        target: "http://localhost:5000",
         changeOrigin: true,
       },
     },
@@ -19,18 +19,18 @@ export default defineConfig({
       output: {
         manualChunks: {
           // Vendor chunks for better caching
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'redux-vendor': ['@reduxjs/toolkit', 'react-redux'],
-          'ui-vendor': ['framer-motion'],
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          "redux-vendor": ["@reduxjs/toolkit", "react-redux"],
+          "ui-vendor": ["framer-motion"],
         },
       },
     },
     // ✅ Increase chunk size warning limit (default 500kb)
     chunkSizeWarningLimit: 1000,
     // ✅ Target modern browsers for smaller bundles
-    target: 'es2015',
+    target: "es2015",
     // ✅ Minify for production
-    minify: 'terser',
+    minify: "terser",
     terserOptions: {
       compress: {
         drop_console: true, // Remove console.logs in production
@@ -40,6 +40,6 @@ export default defineConfig({
   },
   // ✅ Optimize dependencies
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom'],
+    include: ["react", "react-dom", "react-router-dom"],
   },
 });

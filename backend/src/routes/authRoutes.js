@@ -93,9 +93,6 @@ router.post(
  * @desc    Manually verify email (DEV MODE ONLY)
  * @access  Public (Dev only)
  */
-router.post(
-  "/manual-verify",
-  authController.manualVerify.bind(authController),
-);
+router.post("/manual-verify", authController.manualVerify.bind(authController));
 
 export default router;

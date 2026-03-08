@@ -61,6 +61,34 @@ async function main() {
 
   console.log("✅ Admin, Customer, Options created");
 
+  console.log("👥 Generating 39 fake users...");
+  const firstNames = ['John', 'Jane', 'Michael', 'Emily', 'Chris', 'Sarah', 'David', 'Jessica', 'Daniel', 'Ashley', 'Matthew', 'Amanda', 'Andrew', 'Melissa', 'Joshua', 'Brittany', 'Kevin', 'Megan', 'Brian', 'Rachel', 'Justin', 'Hannah', 'Jason', 'Lauren', 'Eric', 'Stephanie', 'Scott', 'Courtney', 'Ryan', 'Nicole', 'Nicholas', 'Rebecca', 'Jeffrey', 'Elizabeth'];
+  const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin', 'Lee', 'Perez', 'Thompson', 'White', 'Harris', 'Sanchez', 'Clark', 'Ramirez', 'Lewis', 'Robinson', 'Walker', 'Young', 'Allen', 'King'];
+  const cities = ['Hanoi', 'Ho Chi Minh', 'Da Nang', 'Hai Phong', 'Can Tho', 'Hue', 'Nha Trang', 'Vung Tau', 'Quy Nhon'];
+
+  for (let i = 0; i < 39; i++) {
+    const randomFirst = firstNames[Math.floor(Math.random() * firstNames.length)];
+    const randomLast = lastNames[Math.floor(Math.random() * lastNames.length)];
+    const name = randomFirst + ' ' + randomLast;
+    const email = randomFirst.toLowerCase() + '.' + randomLast.toLowerCase() + i + '@gmail.com';
+    const phone = '09' + Math.floor(10000000 + Math.random() * 90000000).toString();
+    const city = cities[Math.floor(Math.random() * cities.length)];
+
+    await prisma.user.create({
+      data: {
+        email,
+        password,
+        name,
+        role: "CUSTOMER",
+        phone,
+        address: city + ", Vietnam",
+        balance: Math.floor(Math.random() * 50) * 100000 + 100000,
+        isVerified: true,
+      }
+    });
+  }
+  console.log("✅ 39 Fake users created");
+
   // 3. Create Expert Profiles
   console.log("🎓 Creating expert profiles...");
   
@@ -329,6 +357,129 @@ async function main() {
     });
   }
   console.log("✅ Product items created");
+
+  // 6. Create Orders and Revenue Data
+  console.log("🛍️ Generating Orders & Revenue Data...");
+
+  const allCustomers = await prisma.user.findMany({ where: { role: 'CUSTOMER' } });
+  const allProducts = await prisma.product.findMany();
+  const allExperts = await prisma.expertProfile.findMany();
+  
+  // Create a default shop or use existing for these fake orders
+  let mainShop = await prisma.shop.findFirst();
+  if (!mainShop) {
+    const sellerUser = await prisma.user.create({
+      data: {
+        email: "official.shop@gmail.com",
+        password,
+        name: "EXERCISER Official Store",
+        role: "SELLER",
+        isVerified: true,
+      }
+    });
+
+    mainShop = await prisma.shop.create({
+      data: {
+        userId: sellerUser.id,
+        name: "EXERCISER Official",
+        description: "The official store for EXERCISER",
+        isActive: true,
+        commissionRate: 5.0
+      }
+    });
+  }
+
+  if (allCustomers.length > 0 && allProducts.length > 0) {
+    for (let i = 0; i < 50; i++) {
+      const randomCustomer = allCustomers[Math.floor(Math.random() * allCustomers.length)];
+      const randomProduct = allProducts[Math.floor(Math.random() * allProducts.length)];
+      
+      // Determine if it's a rental (if the product supports rental)
+      const isRental = Math.random() > 0.5 && randomProduct.rentalPrice !== null;
+      
+      // Assume a default sale price if missing, or use rental price
+      const price = isRental ? randomProduct.rentalPrice : (randomProduct.salePrice || 100000);
+      const quantity = Math.floor(Math.random() * 3) + 1; // 1 to 3 items
+      const totalAmount = price * quantity;
+      
+      const order = await prisma.order.create({
+        data: {
+          userId: randomCustomer.id,
+          status: ['PENDING', 'CONFIRMED', 'DELIVERED', 'RETURNED', 'CANCELLED'][Math.floor(Math.random() * 5)],
+          totalAmount: totalAmount,
+          paymentMethod: 'CREDIT_CARD',
+          shippingAddress: randomCustomer.address,
+        }
+      });
+      
+      const shopOrder = await prisma.shopOrder.create({
+        data: {
+          orderId: order.id,
+          shopId: mainShop.id, // Fixed: use valid Shop ID
+          status: order.status,
+          totalAmount: totalAmount,
+          sellerEarning: totalAmount * 0.95,
+          commissionFee: totalAmount * 0.05
+        }
+      });
+      
+      await prisma.orderItem.create({
+         data: {
+           shopOrderId: shopOrder.id,
+           productId: randomProduct.id,
+           quantity: quantity,
+           price: price,
+           isRental: isRental,
+           rentalDays: isRental ? Math.floor(Math.random() * 5) + 1 : null
+         }
+      });
+      
+      await prisma.transaction.create({
+        data: {
+          userId: randomCustomer.id,
+          type: 'PAYMENT',
+          amount: totalAmount,
+          description: 'Payment for order ' + order.id
+        }
+      });
+      
+      // Randomly backdate orders for charts (up to 30 days ago)
+      const pastDate = new Date();
+      pastDate.setDate(pastDate.getDate() - Math.floor(Math.random() * 30));
+      await prisma.$executeRaw`UPDATE "orders" SET "createdAt" = ${pastDate} WHERE id = ${order.id}`;
+      await prisma.$executeRaw`UPDATE "shop_orders" SET "createdAt" = ${pastDate} WHERE id = ${shopOrder.id}`;
+      await prisma.$executeRaw`UPDATE "transactions" SET "createdAt" = ${pastDate} WHERE "userId" = ${randomCustomer.id} AND amount = ${totalAmount}`;
+    }
+    console.log("✅ Generated 50 Orders and Transactions");
+  }
+
+  // 7. Create Expert Bookings
+  console.log("📅 Generating Expert Bookings...");
+  if (allCustomers.length > 0 && allExperts.length > 0) {
+     for (let i = 0; i < 20; i++) {
+        const randomCustomer = allCustomers[Math.floor(Math.random() * allCustomers.length)];
+        const randomExpert = allExperts[Math.floor(Math.random() * allExperts.length)];
+        
+        // Random date in the next 10 days
+        const futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + Math.floor(Math.random() * 10));
+        
+        const duration = Math.floor(Math.random() * 2) + 1; // 1 or 2 hours
+
+        await prisma.booking.create({
+           data: {
+              userId: randomCustomer.id,
+              expertId: randomExpert.id,
+              status: ['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'][Math.floor(Math.random() * 4)],
+              bookingDate: futureDate,
+              duration: duration,
+              totalAmount: randomExpert.hourlyRate * duration,
+              notes: 'Looking forward to the session!'
+           }
+        });
+     }
+     console.log("✅ Generated 20 Expert Bookings");
+  }
 
   console.log("🎉 Seed completed successfully!");
 }

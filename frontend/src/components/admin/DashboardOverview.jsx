@@ -57,7 +57,8 @@ const DashboardOverview = ({ setActiveTab }) => {
         
         ordersData.data.forEach(order => {
             if (order.status !== 'CANCELLED') {
-                order.orderItems.forEach(item => {
+                const items = order.orderItems || order.shopOrders?.flatMap(so => so.orderItems) || [];
+                items.forEach(item => {
                     const productName = item.product?.name || 'Unknown';
                     productSales[productName] = (productSales[productName] || 0) + item.quantity;
                 });

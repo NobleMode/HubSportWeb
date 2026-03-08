@@ -18,8 +18,9 @@ const AdminOrderDetailsModal = ({ order, onClose, onUpdate }) => {
     
     if (!order) return null;
 
-    const rentalItems = order.orderItems.filter(item => item.isRental);
-    const saleItems = order.orderItems.filter(item => !item.isRental);
+    const items = order.orderItems || order.shopOrders?.flatMap(so => so.orderItems) || [];
+    const rentalItems = items.filter(item => item.isRental);
+    const saleItems = items.filter(item => !item.isRental);
 
     const handleStatusChange = async (e) => {
         const newStatus = e.target.value;

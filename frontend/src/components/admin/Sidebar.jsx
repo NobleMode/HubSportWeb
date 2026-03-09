@@ -5,6 +5,8 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'products', label: 'Manage Products', icon: '📦' },
     { id: 'orders', label: 'View Orders', icon: '📋' },
+    { id: 'payment-bills', label: 'Payment Bills', icon: '💳' },
+    { id: 'withdrawals', label: 'Withdrawals', icon: '💰' },
     { id: 'users', label: 'Manage Users', icon: '👥' },
     { id: 'discounts', label: 'Discounts', icon: '🎟️' },
   ];

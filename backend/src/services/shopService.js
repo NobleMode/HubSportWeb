@@ -164,6 +164,64 @@ class ShopService {
       return updatedShopOrder;
     });
   }
+
+  /**
+   * Request withdrawal
+   */
+  async requestWithdrawal(shopId, withdrawalData) {
+    const { amount, bankName, accountNumber, accountName } = withdrawalData;
+
+    return await prisma.$transaction(async (tx) => {
+      // Get shop and check balance
+      const shop = await tx.shop.findUnique({ where: { id: shopId } });
+
+      if (!shop) {
+        throw new Error("Shop not found");
+      }
+
+      if (shop.balance < amount) {
+        throw new Error("Insufficient balance");
+      }
+
+      if (amount < 50000) {
+        throw new Error("Minimum withdrawal amount is 50,000 VND");
+      }
+
+      // Create withdrawal request
+      const withdrawal = await tx.withdrawal.create({
+        data: {
+          shopId,
+          amount,
+          bankName,
+          accountNumber,
+          accountName,
+          status: "PENDING",
+        },
+      });
+
+      // Deduct from shop balance (reserve funds)
+      await tx.shop.update({
+        where: { id: shopId },
+        data: {
+          balance: {
+            decrement: amount,
+          },
+        },
+      });
+
+      return withdrawal;
+    });
+  }
+
+  /**
+   * Get withdrawal history for a shop
+   */
+  async getWithdrawalHistory(shopId) {
+    return await prisma.withdrawal.findMany({
+      where: { shopId },
+      orderBy: { createdAt: "desc" },
+    });
+  }
 }
 
 export default new ShopService();

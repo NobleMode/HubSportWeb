@@ -78,4 +78,28 @@ router.patch(
   shopController.settleOrder.bind(shopController),
 );
 
+/**
+ * @route   POST /api/shops/withdraw
+ * @desc    Request withdrawal from shop balance
+ * @access  Private (Seller)
+ */
+router.post(
+  "/withdraw",
+  authMiddleware,
+  authorize(SCOPES.MANAGE_SHOP),
+  shopController.requestWithdrawal.bind(shopController),
+);
+
+/**
+ * @route   GET /api/shops/withdrawals
+ * @desc    Get withdrawal history
+ * @access  Private (Seller)
+ */
+router.get(
+  "/withdrawals",
+  authMiddleware,
+  authorize(SCOPES.MANAGE_SHOP),
+  shopController.getWithdrawalHistory.bind(shopController),
+);
+
 export default router;

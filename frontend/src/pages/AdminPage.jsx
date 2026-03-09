@@ -5,6 +5,8 @@ import ProductManagement from '../components/admin/ProductManagement';
 import OrderManagement from '../components/admin/OrderManagement';
 import UserManagement from '../components/admin/UserManagement';
 import DiscountManagement from '../components/admin/DiscountManagement';
+import PaymentBillReview from '../components/admin/PaymentBillReview';
+import WithdrawalManagement from '../components/admin/WithdrawalManagement';
 
 /**
  * Admin Page (Protected - Admin Only)
@@ -20,6 +22,10 @@ const AdminPage = () => {
                 return <ProductManagement />;
             case 'orders':
                 return <OrderManagement />;
+            case 'payment-bills':
+                return <PaymentBillReview />;
+            case 'withdrawals':
+                return <WithdrawalManagement />;
             case 'users':
                 return <UserManagement />;
             case 'discounts':

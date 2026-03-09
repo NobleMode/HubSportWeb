@@ -59,7 +59,7 @@ const SellerRegistrationPage = () => {
         className="max-w-3xl mx-auto"
       >
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-600 sm:text-5xl">
+          <h1 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-electricBlue to-limeGreen sm:text-5xl">
             Bắt đầu kinh doanh cùng EXERCISER
           </h1>
           <p className="mt-4 text-xl text-gray-400">
@@ -84,7 +84,7 @@ const SellerRegistrationPage = () => {
                 required
                 value={formData.name}
                 onChange={handleChange}
-                className="mt-1 block w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all outline-none"
+                className="mt-1 block w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-electricBlue focus:border-transparent transition-all outline-none"
                 placeholder="Ví dụ: Sport Master Store"
               />
             </div>
@@ -102,7 +102,7 @@ const SellerRegistrationPage = () => {
                 rows={4}
                 value={formData.description}
                 onChange={handleChange}
-                className="mt-1 block w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all outline-none"
+                className="mt-1 block w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-electricBlue focus:border-transparent transition-all outline-none"
                 placeholder="Mô tả ngắn gọn về cửa hàng của bạn..."
               />
             </div>
@@ -121,7 +121,7 @@ const SellerRegistrationPage = () => {
                   name="avatarUrl"
                   value={formData.avatarUrl}
                   onChange={handleChange}
-                  className="mt-1 block w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all outline-none"
+                  className="mt-1 block w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-electricBlue focus:border-transparent transition-all outline-none"
                   placeholder="https://..."
                 />
               </div>
@@ -139,7 +139,7 @@ const SellerRegistrationPage = () => {
                   name="coverUrl"
                   value={formData.coverUrl}
                   onChange={handleChange}
-                  className="mt-1 block w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all outline-none"
+                  className="mt-1 block w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-electricBlue focus:border-transparent transition-all outline-none"
                   placeholder="https://..."
                 />
               </div>
@@ -149,7 +149,7 @@ const SellerRegistrationPage = () => {
               <button
                 type="submit"
                 disabled={isRegistering}
-                className={`w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold text-lg shadow-lg hover:shadow-amber-500/20 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:hover:scale-100`}
+                className={`w-full py-4 rounded-2xl bg-gradient-to-r from-electricBlue to-limeGreen text-white font-bold text-lg shadow-lg hover:shadow-electricBlue/30 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:hover:scale-100`}
               >
                 {isRegistering ? "Đang xử lý..." : "Mở Shop Ngay"}
               </button>

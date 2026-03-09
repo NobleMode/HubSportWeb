@@ -243,10 +243,43 @@ class OrderService {
       });
 
       // Update nested ShopOrders
-      await tx.shopOrder.updateMany({
+      const shopOrders = await tx.shopOrder.updateMany({
         where: { orderId },
         data: { status },
       });
+
+      // Calculate shop earnings when order is confirmed
+      if (status === "CONFIRMED") {
+        const shopOrdersToCalc = await tx.shopOrder.findMany({
+          where: { orderId },
+        });
+
+        for (const shopOrder of shopOrdersToCalc) {
+          // Calculate platform fee (10% of total amount)
+          const platformFee = parseFloat((shopOrder.totalAmount * 0.1).toFixed(2));
+          const sellerEarning = parseFloat((shopOrder.totalAmount - platformFee).toFixed(2));
+
+          // Update shop order with calculated fees
+          await tx.shopOrder.update({
+            where: { id: shopOrder.id },
+            data: {
+              commissionRate: 10,
+              commissionFee: platformFee,
+              sellerEarning: sellerEarning,
+            },
+          });
+
+          // Add seller earning to shop balance
+          await tx.shop.update({
+            where: { id: shopOrder.shopId },
+            data: {
+              balance: {
+                increment: sellerEarning,
+              },
+            },
+          });
+        }
+      }
 
       // Handle specific status effects (e.g., RETURNED, CANCELLED)
       if (status === "RETURNED" || status === "CANCELLED") {
@@ -339,6 +372,124 @@ class OrderService {
 
       return item;
     });
+  }
+
+  /**
+   * Upload payment proof (bill image) for QR code payment
+   */
+  async uploadPaymentProof(userId, orderId, paymentProofData) {
+    const { billImageUrl, bankName, accountNumber, transactionId } = paymentProofData;
+
+    return await prisma.$transaction(async (tx) => {
+      // Verify order exists and belongs to user
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+      });
+
+      if (!order) {
+        throw new Error("Order not found");
+      }
+
+      if (order.userId !== userId) {
+        throw new Error("Unauthorized: Order does not belong to this user");
+      }
+
+      // Create payment proof
+      const paymentProof = await tx.paymentProof.create({
+        data: {
+          orderId,
+          billImageUrl,
+          bankName,
+          accountNumber,
+          transactionId,
+          uploadedBy: userId,
+          status: "PENDING",
+        },
+      });
+
+      return paymentProof;
+    });
+  }
+
+  /**
+   * Get payment proof for admin review
+   */
+  async getPendingPaymentProofs() {
+    return await prisma.paymentProof.findMany({
+      where: { status: "PENDING" },
+      include: {
+        order: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+        uploadedByUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "asc" },
+    });
+  }
+
+  /**
+   * Approve payment proof by admin (update order status)
+   */
+  async approvePaymentProof(proofId, adminId) {
+    return await prisma.$transaction(async (tx) => {
+      const proof = await tx.paymentProof.findUnique({
+        where: { id: proofId },
+        include: { order: true },
+      });
+
+      if (!proof) {
+        throw new Error("Payment proof not found");
+      }
+
+      // Update proof status
+      const updatedProof = await tx.paymentProof.update({
+        where: { id: proofId },
+        data: {
+          status: "APPROVED",
+          approvedBy: adminId,
+          approvedAt: new Date(),
+        },
+      });
+
+      // Update order status to CONFIRMED
+      await tx.order.update({
+        where: { id: proof.orderId },
+        data: { status: "CONFIRMED" },
+      });
+
+      return updatedProof;
+    });
+  }
+
+  /**
+   * Reject payment proof by admin
+   */
+  async rejectPaymentProof(proofId, reason, adminId) {
+    const proof = await prisma.paymentProof.update({
+      where: { id: proofId },
+      data: {
+        status: "REJECTED",
+        rejectionReason: reason,
+        approvedBy: adminId,
+        approvedAt: new Date(),
+      },
+    });
+
+    return proof;
   }
 }
 

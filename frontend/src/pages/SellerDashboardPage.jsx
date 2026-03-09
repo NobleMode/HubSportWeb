@@ -6,6 +6,7 @@ import {
 } from "../services/shopApi";
 import { motion } from "framer-motion";
 import AddProductModal from "../components/shop/AddProductModal";
+import WithdrawModal from "../components/shop/WithdrawModal";
 
 const SellerDashboardPage = () => {
   const { data: shopData, isLoading: isShopLoading } = useGetMyShopQuery();
@@ -17,6 +18,7 @@ const SellerDashboardPage = () => {
   const [settleOrder, { isLoading: isSettling }] = useSettleShopOrderMutation();
 
   const [isAddModalOpen, setIsAddModalOpen] = React.useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = React.useState(false);
 
   const shop = shopData?.data;
   const orders = ordersData?.data;
@@ -47,7 +49,7 @@ const SellerDashboardPage = () => {
             </h1>
             <p className="mt-2 text-gray-500">
               Chào mừng trở lại,{" "}
-              <span className="font-bold text-amber-600">{shop?.name}</span>
+              <span className="font-bold text-electricBlue">{shop?.name}</span>
             </p>
           </div>
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-6">
@@ -55,14 +57,14 @@ const SellerDashboardPage = () => {
               <p className="text-sm text-gray-500 font-medium">
                 Số dư khả dụng
               </p>
-              <p className="text-3xl font-black text-amber-600">
+              <p className="text-3xl font-black text-limeGreen">
                 {shop?.balance?.toLocaleString("vi-VN")}đ
               </p>
             </div>
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => setIsAddModalOpen(true)}
-                className="px-6 py-2 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
+                className="px-6 py-2 bg-electricBlue text-white rounded-2xl font-bold hover:bg-electricBlue-hover transition-all flex items-center justify-center gap-2"
               >
                 <svg
                   className="w-5 h-5"
@@ -79,7 +81,10 @@ const SellerDashboardPage = () => {
                 </svg>
                 Thêm Sản phẩm
               </button>
-              <button className="px-6 py-2 bg-gray-900 text-white rounded-2xl font-bold hover:bg-black transition-all">
+              <button
+                onClick={() => setIsWithdrawModalOpen(true)}
+                className="px-6 py-2 bg-gray-900 text-white rounded-2xl font-bold hover:bg-black transition-all"
+              >
                 Rút tiền
               </button>
             </div>
@@ -96,6 +101,13 @@ const SellerDashboardPage = () => {
           }}
         />
 
+        {/* Withdraw Modal */}
+        <WithdrawModal
+          isOpen={isWithdrawModalOpen}
+          onClose={() => setIsWithdrawModalOpen(false)}
+          currentBalance={shop?.balance || 0}
+        />
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
           <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
             <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">
@@ -109,7 +121,7 @@ const SellerDashboardPage = () => {
             <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">
               Đơn hàng hoàn tất
             </p>
-            <p className="text-4xl font-black text-green-600 mt-2">
+            <p className="text-4xl font-black text-limeGreen mt-2">
               {orders?.filter((o) => o.status === "DELIVERED").length || 0}
             </p>
           </div>
@@ -117,7 +129,7 @@ const SellerDashboardPage = () => {
             <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">
               Doanh thu tạm tính
             </p>
-            <p className="text-4xl font-black text-blue-600 mt-2">
+            <p className="text-4xl font-black text-electricBlue mt-2">
               {orders
                 ?.reduce((sum, o) => sum + o.sellerEarning, 0)
                 .toLocaleString("vi-VN")}
@@ -132,7 +144,7 @@ const SellerDashboardPage = () => {
               Danh sách Đơn hàng
             </h2>
             <div className="flex gap-2">
-              <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-xs font-bold">
+              <span className="px-3 py-1 bg-electricBlue/10 text-electricBlue rounded-full text-xs font-bold">
                 Cần xử lý
               </span>
             </div>
@@ -184,7 +196,7 @@ const SellerDashboardPage = () => {
                       </div>
                     </td>
                     <td className="px-8 py-6">
-                      <p className="font-bold text-amber-600">
+                      <p className="font-bold text-limeGreen">
                         {order.sellerEarning?.toLocaleString("vi-VN")}đ
                       </p>
                       <p className="text-[10px] text-gray-400 italic">
@@ -196,8 +208,8 @@ const SellerDashboardPage = () => {
                       <span
                         className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
                           order.status === "DELIVERED"
-                            ? "bg-green-100 text-green-600"
-                            : "bg-amber-100 text-amber-600"
+                            ? "bg-limeGreen/20 text-limeGreen"
+                            : "bg-electricBlue/20 text-electricBlue"
                         }`}
                       >
                         {order.status}
@@ -208,7 +220,7 @@ const SellerDashboardPage = () => {
                         <button
                           onClick={() => handleSettle(order.id)}
                           disabled={isSettling}
-                          className="px-4 py-2 bg-amber-500 text-white rounded-xl text-xs font-bold hover:bg-amber-600 transition-all disabled:opacity-50"
+                          className="px-4 py-2 bg-limeGreen text-white rounded-xl text-xs font-bold hover:bg-limeGreen-hover transition-all disabled:opacity-50"
                         >
                           Xác nhận & Nhận tiền
                         </button>

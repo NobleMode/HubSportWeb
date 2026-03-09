@@ -1,6 +1,8 @@
 import express from 'express';
 import orderController from '../controllers/orderController.js';
 import authMiddleware from '../middlewares/authMiddleware.js';
+import { authorize } from '../middlewares/roleMiddleware.js';
+import { SCOPES } from '../config/permissions.js';
 
 const router = express.Router();
 
@@ -70,5 +72,33 @@ router.patch('/items/:itemId/return', orderController.returnItem.bind(orderContr
  * @access  Private (Admin)
  */
 router.patch('/:id/status', orderController.updateStatus.bind(orderController));
+
+/**
+ * @route   POST /api/orders/:id/payment-proof
+ * @desc    Upload payment proof (bill) for QR code payment
+ * @access  Private
+ */
+router.post('/:id/payment-proof', orderController.uploadPaymentProof.bind(orderController));
+
+/**
+ * @route   GET /api/orders/payment-proofs/pending
+ * @desc    Get all pending payment proofs (Admin)
+ * @access  Private (Admin)
+ */
+router.get('/payment-proofs/pending', authorize(SCOPES.MANAGE_ORDERS), orderController.getPendingPaymentProofs.bind(orderController));
+
+/**
+ * @route   PATCH /api/orders/payment-proofs/:id/approve
+ * @desc    Approve payment proof (Admin)
+ * @access  Private (Admin)
+ */
+router.patch('/payment-proofs/:id/approve', authorize(SCOPES.MANAGE_ORDERS), orderController.approvePaymentProof.bind(orderController));
+
+/**
+ * @route   PATCH /api/orders/payment-proofs/:id/reject
+ * @desc    Reject payment proof (Admin)
+ * @access  Private (Admin)
+ */
+router.patch('/payment-proofs/:id/reject', authorize(SCOPES.MANAGE_ORDERS), orderController.rejectPaymentProof.bind(orderController));
 
 export default router;

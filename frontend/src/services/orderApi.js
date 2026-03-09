@@ -65,6 +65,33 @@ export const orderApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Order'],
     }),
+    uploadPaymentProof: builder.mutation({
+      query: ({ orderId, paymentProofData }) => ({
+        url: `/orders/${orderId}/payment-proof`,
+        method: 'POST',
+        body: paymentProofData,
+      }),
+      invalidatesTags: ['Order'],
+    }),
+    getPendingPaymentProofs: builder.query({
+      query: () => '/orders/payment-proofs/pending',
+      providesTags: ['Order'],
+    }),
+    approvePaymentProof: builder.mutation({
+      query: (proofId) => ({
+        url: `/orders/payment-proofs/${proofId}/approve`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: ['Order'],
+    }),
+    rejectPaymentProof: builder.mutation({
+      query: ({ proofId, reason }) => ({
+        url: `/orders/payment-proofs/${proofId}/reject`,
+        method: 'PATCH',
+        body: { reason },
+      }),
+      invalidatesTags: ['Order'],
+    }),
   }),
 });
 
@@ -78,4 +105,8 @@ export const {
   useReportOrderItemIssueMutation,
   useUpdateOrderStatusMutation,
   useReturnOrderItemMutation,
+  useUploadPaymentProofMutation,
+  useGetPendingPaymentProofsQuery,
+  useApprovePaymentProofMutation,
+  useRejectPaymentProofMutation,
 } = orderApi;

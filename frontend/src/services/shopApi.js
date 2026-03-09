@@ -44,6 +44,18 @@ export const shopApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["ShopOrder", "Shop"],
     }),
+    requestWithdrawal: builder.mutation({
+      query: (withdrawalData) => ({
+        url: "/shops/withdraw",
+        method: "POST",
+        body: withdrawalData,
+      }),
+      invalidatesTags: ["Shop", "Withdrawal"],
+    }),
+    getWithdrawalHistory: builder.query({
+      query: () => "/shops/withdrawals",
+      providesTags: ["Withdrawal"],
+    }),
   }),
 });
 
@@ -55,4 +67,6 @@ export const {
   useUpdateShopMutation,
   useGetMyShopOrdersQuery,
   useSettleShopOrderMutation,
+  useRequestWithdrawalMutation,
+  useGetWithdrawalHistoryQuery,
 } = shopApi;

@@ -182,7 +182,7 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
                   value={formData.name || ""}
                   onChange={handleChange}
                   required
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-electricBlue focus:border-transparent outline-none"
                   placeholder="Ví dụ: Vợt cầu lông Yonex"
                 />
               </div>
@@ -195,7 +195,7 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
                   name="brand"
                   value={formData.brand || ""}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-electricBlue focus:border-transparent outline-none"
                   placeholder="Ví dụ: Yonex"
                 />
               </div>
@@ -211,7 +211,7 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none bg-white"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-electricBlue focus:border-transparent outline-none bg-white"
                 >
                   {categories.map((cat) => (
                     <option key={cat} value={cat}>
@@ -231,7 +231,7 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
                   value={formData.stock || ""}
                   onChange={handleChange}
                   required
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-electricBlue focus:border-transparent outline-none"
                 />
               </div>
             </div>
@@ -247,7 +247,7 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
                   min="0"
                   value={formData.salePrice || ""}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-electricBlue focus:border-transparent outline-none"
                   placeholder="Bỏ trống nếu ko bán"
                 />
               </div>
@@ -261,7 +261,7 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
                   min="0"
                   value={formData.rentalPrice || ""}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-electricBlue focus:border-transparent outline-none"
                   placeholder="Bỏ trống nếu ko thuê"
                 />
               </div>
@@ -275,7 +275,7 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
                   min="0"
                   value={formData.depositFee || ""}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-electricBlue focus:border-transparent outline-none"
                   placeholder="Cần có nếu cho thuê"
                 />
               </div>
@@ -294,7 +294,7 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
                     value="url"
                     checked={formData.imageOption === "url"}
                     onChange={handleChange}
-                    className="w-4 h-4 text-blue-600"
+                    className="w-4 h-4 text-electricBlue"
                   />
                   <span className="text-sm font-medium">Sử dụng URL</span>
                 </label>
@@ -305,7 +305,7 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
                     value="file"
                     checked={formData.imageOption === "file"}
                     onChange={handleChange}
-                    className="w-4 h-4 text-blue-600"
+                    className="w-4 h-4 text-electricBlue"
                   />
                   <span className="text-sm font-medium">
                     Tải lên từ máy tính
@@ -320,7 +320,7 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
                   value={formData.imageUrl || ""}
                   onChange={handleChange}
                   required
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 outline-none"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-electricBlue outline-none"
                   placeholder="https://example.com/image.jpg"
                 />
               ) : (
@@ -330,7 +330,7 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
                   accept="image/*"
                   onChange={handleChange}
                   required
-                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-electricBlue/10 file:text-electricBlue hover:file:bg-electricBlue/20 cursor-pointer"
                 />
               )}
             </div>
@@ -345,7 +345,7 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
                 rows="3"
                 value={formData.description || ""}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none resize-none"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-electricBlue focus:border-transparent outline-none resize-none"
                 placeholder="Nhập mô tả chi tiết sản phẩm..."
               />
             </div>
@@ -365,7 +365,7 @@ const AddProductModal = ({ isOpen, onClose, onProductCreated }) => {
           <Button
             type="submit"
             form="addProductForm"
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-electricBlue hover:bg-electricBlue-hover"
             disabled={isCreating || isUploading}
           >
             {isUploading

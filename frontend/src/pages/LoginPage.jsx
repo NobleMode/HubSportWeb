@@ -17,13 +17,15 @@ const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    rememberMe: false,
   });
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: type === "checkbox" ? checked : value,
     });
     setError("");
   };
@@ -45,6 +47,7 @@ const LoginPage = () => {
         setCredentials({
           user: response.data.user,
           token: response.data.token,
+          rememberMe: formData.rememberMe,
         }),
       );
 
@@ -159,10 +162,27 @@ const LoginPage = () => {
               />
             </div>
 
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                name="rememberMe"
+                checked={formData.rememberMe}
+                onChange={handleChange}
+                className="w-4 h-4 rounded border-gray-300 text-electricBlue focus:ring-electricBlue cursor-pointer"
+              />
+              <label
+                htmlFor="rememberMe"
+                className="ml-2 text-sm text-gray-600 cursor-pointer"
+              >
+                Remember me for 30 days
+              </label>
+            </div>
+
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-4 text-black bg-limeGreen hover:bg-limeGreen-hover text-white font-bold rounded-xl shadow-lg shadow-limeGreen/30 transition transform hover:-translate-y-1 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-4 bg-limeGreen hover:bg-limeGreen-hover text-white font-bold rounded-xl shadow-lg shadow-limeGreen/30 transition transform hover:-translate-y-1 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <LoadingSpinner size="sm" color="white" />

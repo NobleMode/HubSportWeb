@@ -12,6 +12,7 @@ import {
   setCredentials,
   setLoading,
   restoreSession,
+  loadFromStorage,
 } from "./features/auth/authSlice";
 import {
   useGetProfileQuery,
@@ -79,6 +80,11 @@ function App() {
   } = useGetProfileQuery(undefined, {
     skip: !token, // Skip if no token
   });
+
+  // ✅ Load session from localStorage on mount
+  useEffect(() => {
+    dispatch(loadFromStorage());
+  }, [dispatch]);
 
   // Handle Global Loading State
   useEffect(() => {

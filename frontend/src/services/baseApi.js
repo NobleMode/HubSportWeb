@@ -9,7 +9,14 @@ const baseQuery = fetchBaseQuery({
   baseUrl,
   credentials: 'include',
   prepareHeaders: (headers, { getState }) => {
-    const token = getState().auth.token;
+    // First check Redux state
+    let token = getState().auth.token;
+    
+    // If no token in Redux, check localStorage (happens on app reload)
+    if (!token && typeof window !== 'undefined') {
+      token = localStorage.getItem('auth_token');
+    }
+    
     if (token) {
       headers.set('authorization', `Bearer ${token}`);
     }
@@ -34,18 +41,21 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
             extraOptions
         );
 
-
-        console.log("chạy tới đây");
         if (refreshResult.data) {
           // Store the new token
           const { token, user } = refreshResult.data.data;
           api.dispatch(setCredentials({ token, user }));
+          // Make sure token is in localStorage for baseQuery prepareHeaders
+          localStorage.setItem('auth_token', token);
+          localStorage.setItem('auth_user', JSON.stringify(user));
           
           // Retry the initial query
           result = await baseQuery(args, api, extraOptions);
         } else {
           // Refresh failed
           api.dispatch(logout());
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_user');
         }
       } finally {
         // release must be called once the mutex should be released again.

@@ -71,6 +71,12 @@ enum TransactionType {
   INCOME
 }
 
+enum PaymentProofStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model Coupon {
   id            String    @id @default(uuid())
   code          String    @unique
@@ -105,14 +111,16 @@ model User {
   updatedAt  DateTime  @updatedAt
 
   // Relations
-  orders        Order[]
-  expertProfile ExpertProfile?
-  bookings      Booking[]
-  reviews       Review[]
-  shipments     Shipment[]     @relation("ShipperShipments")
-  refreshTokens RefreshToken[]
-  shop          Shop?
-  transactions  Transaction[]
+  orders                   Order[]
+  expertProfile            ExpertProfile?
+  bookings                 Booking[]
+  reviews                  Review[]
+  shipments                Shipment[]     @relation("ShipperShipments")
+  refreshTokens            RefreshToken[]
+  shop                     Shop?
+  transactions             Transaction[]
+  paymentProofsUploaded    PaymentProof[] @relation("PaymentProofUploadedBy")
+  paymentProofsApproved    PaymentProof[] @relation("PaymentProofApprovedBy")
 
   @@map("users")
 }
@@ -203,6 +211,7 @@ model Order {
 
   // Relations
   shopOrders      ShopOrder[]
+  paymentProof    PaymentProof?
   maintenanceLogs MaintenanceLog[]
 
   @@map("orders")
@@ -322,6 +331,27 @@ model Booking {
   @@map("bookings")
 }
 
+model PaymentProof {
+  id             String              @id @default(uuid())
+  orderId        String              @unique
+  order          Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  billImageUrl   String
+  bankName       String?
+  accountNumber  String?
+  transactionId  String?
+  uploadedBy     String
+  uploadedByUser User                @relation("PaymentProofUploadedBy", fields: [uploadedBy], references: [id], onDelete: Cascade)
+  status         PaymentProofStatus  @default(PENDING)
+  approvedBy     String?
+  approvedByUser User?               @relation("PaymentProofApprovedBy", fields: [approvedBy], references: [id], onDelete: SetNull)
+  approvedAt     DateTime?
+  rejectionReason String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@map("payment_proofs")
+}
+
 model Review {
   id        String   @id @default(uuid())
   userId    String
@@ -382,6 +412,32 @@ model Shop {
   // Relations
   products   Product[]
   shopOrders ShopOrder[]
+  withdrawals Withdrawal[]
 
   @@map("shops")
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  COMPLETED
+  REJECTED
+}
+
+model Withdrawal {
+  id            String           @id @default(uuid())
+  shopId        String
+  shop          Shop             @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  amount        Float
+  bankName      String
+  accountNumber String
+  accountName   String
+  status        WithdrawalStatus @default(PENDING)
+  requestedAt   DateTime         @default(now())
+  processedAt   DateTime?
+  notes         String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@map("withdrawals")
 }

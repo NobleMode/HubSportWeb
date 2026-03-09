@@ -22,6 +22,13 @@ router.use('/:productId/items', productItemRoutes);
 router.get('/', productController.getAllProducts.bind(productController));
 
 /**
+ * @route   GET /api/products/categories
+ * @desc    Get all product categories
+ * @access  Public
+ */
+router.get('/categories', productController.getCategories.bind(productController));
+
+/**
  * @route   GET /api/products/:id
  * @desc    Get product by ID
  * @access  Public

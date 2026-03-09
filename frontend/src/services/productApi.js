@@ -16,6 +16,10 @@ export const productApi = baseApi.injectEndpoints({
       providesTags: ["Product"],
       keepUnusedDataFor: 0, // Disable caching to ensure fresh results on filter change
     }),
+    getCategories: builder.query({
+      query: () => "/products/categories",
+      providesTags: ["Category"],
+    }),
     getProductById: builder.query({
       query: (id) => `/products/${id}`,
       providesTags: (result, error, id) => [{ type: "Product", id }],
@@ -96,6 +100,7 @@ export const productApi = baseApi.injectEndpoints({
 
 export const {
   useGetProductsQuery,
+  useGetCategoriesQuery,
   useGetProductByIdQuery,
   useCreateProductMutation,
   useUpdateProductMutation,

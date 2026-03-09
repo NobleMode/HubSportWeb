@@ -182,6 +182,22 @@ class ProductService {
 
     return { message: "Product deleted successfully" };
   }
+
+  /**
+   * Get all distinct categories
+   */
+  async getCategories() {
+    const categories = await prisma.product.findMany({
+      where: { isActive: true },
+      select: { category: true },
+      distinct: ['category'],
+    });
+
+    return categories
+      .map(p => p.category)
+      .filter(c => c !== null && c !== '')
+      .sort();
+  }
 }
 
 export default new ProductService();

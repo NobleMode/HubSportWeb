@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useGetProductsQuery } from "../services/productApi";
+import { useGetProductsQuery, useGetCategoriesQuery } from "../services/productApi";
 import { getImageUrl } from "../utils/imageUtils";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import { useDispatch, useSelector } from "react-redux";
@@ -30,6 +30,9 @@ const ProductsPage = () => {
     search: searchTerm,
     ...filters,
   });
+
+  const { data: categoriesData } = useGetCategoriesQuery();
+  const categories = categoriesData?.data || [];
 
   // Debounce search update
   useEffect(() => {
@@ -215,16 +218,7 @@ const ProductsPage = () => {
               >
                 All Categories
               </button>
-              {[
-                "Badminton",
-                "Tennis",
-                "Soccer",
-                "Basketball",
-                "Gym",
-                "Yoga",
-                "Golf",
-                "Electronics",
-              ].map((cat) => (
+              {categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() =>

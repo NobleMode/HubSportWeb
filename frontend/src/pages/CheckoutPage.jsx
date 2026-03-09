@@ -6,13 +6,16 @@ import {
   selectTotalAmount,
   selectTotalDeposit,
   clearCart,
-} from '../features/cart/cartSlice';
-import { selectCurrentUser } from '../features/auth/authSlice';
-import { useCreateOrderMutation, useUploadPaymentProofMutation } from '../services/orderApi';
-import { useGetProfileQuery } from '../services/authApi';
-import Button from '../components/common/Button';
-import { getImageUrl } from '../utils/imageUtils';
-import { useToast } from '../context/ToastContext';
+} from "../features/cart/cartSlice";
+import { selectCurrentUser } from "../features/auth/authSlice";
+import {
+  useCreateOrderMutation,
+  useUploadPaymentProofMutation,
+} from "../services/orderApi";
+import { useGetProfileQuery } from "../services/authApi";
+import Button from "../components/common/Button";
+import { getImageUrl } from "../utils/imageUtils";
+import { useToast } from "../context/ToastContext";
 
 /**
  * Checkout Page
@@ -52,7 +55,8 @@ const CheckoutPage = () => {
   }, [checkoutItems]);
   const [createOrder, { isLoading: isOrderLoading }] = useCreateOrderMutation();
 
-  const [uploadPaymentProof, { isLoading: isUploadingProof }] = useUploadPaymentProofMutation();
+  const [uploadPaymentProof, { isLoading: isUploadingProof }] =
+    useUploadPaymentProofMutation();
 
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -121,7 +125,6 @@ const CheckoutPage = () => {
     }
   };
 
-
   const { showToast } = useToast();
 
   const steps = [
@@ -176,7 +179,9 @@ const CheckoutPage = () => {
       };
 
       const response = await createOrder(orderData).unwrap();
-      const orderId = response?.data?.id || Math.random().toString(36).substr(2, 9).toUpperCase();
+      const orderId =
+        response?.data?.id ||
+        Math.random().toString(36).substr(2, 9).toUpperCase();
 
       // Upload payment proof if QR payment method
       if (formData.paymentMethod === "QR" && paymentProofData.billImageUrl) {
@@ -190,15 +195,18 @@ const CheckoutPage = () => {
               transactionId: paymentProofData.transactionId || undefined,
             },
           }).unwrap();
-          showToast('Payment proof uploaded successfully!', 'success');
+          showToast("Payment proof uploaded successfully!", "success");
         } catch (err) {
           console.error("Failed to upload payment proof:", err);
-          showToast('Order created but payment proof upload failed. Please upload it later.', 'warning');
+          showToast(
+            "Order created but payment proof upload failed. Please upload it later.",
+            "warning",
+          );
         }
       }
 
       dispatch(clearCart());
-      showToast('Order placed successfully!', 'success');
+      showToast("Order placed successfully!", "success");
       console.log("chạy tới đây", response);
       navigate("/order-success", {
         state: {
@@ -215,7 +223,7 @@ const CheckoutPage = () => {
         err?.data?.message ||
         err?.message ||
         "An unexpected error occurred while processing your order. Please try again.";
-      showToast(errorMessage, 'error');
+      showToast(errorMessage, "error");
       // Navigate to fail page with error message
       navigate("/order-fail", {
         state: { errorMessage },
@@ -303,8 +311,8 @@ const CheckoutPage = () => {
     discount;
   const tax = Math.round(subtotalBeforeTax * 0.1);
   const finalTotal = subtotalBeforeTax + tax;
-  const isWalletInsufficient = formData.paymentMethod === 'WALLET' && user?.balance < finalTotal;
-
+  const isWalletInsufficient =
+    formData.paymentMethod === "WALLET" && user?.balance < finalTotal;
 
   return (
     <div className="bg-gray-50 min-h-screen py-8">
@@ -658,231 +666,247 @@ const CheckoutPage = () => {
 
                   {/* QR Code Display */}
                   {formData.paymentMethod === "QR" && (
-                    <div className="mt-8 bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
-                      <h3 className="font-bold text-lg text-gray-900 mb-4 text-center">
-                        Scan QR Code to Pay
-                      </h3>
-                      <div className="flex flex-col items-center">
-                        {/* QR Code Image - You can replace this with actual QR code */}
-                        <div className="bg-white p-4 rounded-lg shadow-md mb-4">
-                          <div className="w-64 h-64 bg-gray-200 flex items-center justify-center rounded-lg">
-                            <svg
-                              className="w-48 h-48 text-gray-400"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={1}
-                                d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
-                              />
-                            </svg>
-                          </div>
-                        </div>
-
-                        {/* Bank Account Info */}
-                        <div className="w-full bg-white rounded-lg p-4 border border-blue-200">
-                          <h4 className="font-bold text-gray-900 mb-3 text-center">
-                            Bank Account Information
-                          </h4>
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Bank:</span>
-                              <span className="font-semibold text-gray-900">
-                                Vietcombank
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">
-                                Account Number:
-                              </span>
-                              <span className="font-semibold text-gray-900">
-                                1234567890
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">
-                                Account Name:
-                              </span>
-                              <span className="font-semibold text-gray-900">
-                                LUONG PHAM MINH
-                              </span>
-                            </div>
-                            <div className="flex justify-between border-t pt-2 mt-2">
-                              <span className="text-gray-600">Amount:</span>
-                              <span className="font-bold text-blue-600 text-lg">
-                                {(
-                                  checkoutAmount +
-                                  checkoutDeposit +
-                                  shippingFee +
-                                  tax
-                                ).toLocaleString("vi-VN")}
-                                đ
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Content:</span>
-                              <span className="font-semibold text-gray-900">
-                                HUBSPORT {user?.id || "ORDER"}
-                              </span>
+                    <>
+                      <div className="mt-8 bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+                        <h3 className="font-bold text-lg text-gray-900 mb-4 text-center">
+                          Scan QR Code to Pay
+                        </h3>
+                        <div className="flex flex-col items-center">
+                          {/* QR Code Image - You can replace this with actual QR code */}
+                          <div className="bg-white p-4 rounded-lg shadow-md mb-4">
+                            <div className="w-64 h-64 bg-gray-200 flex items-center justify-center rounded-lg">
+                              <svg
+                                className="w-48 h-48 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={1}
+                                  d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
+                                />
+                              </svg>
                             </div>
                           </div>
-                        </div>
 
-                        <p className="text-xs text-gray-600 text-center mt-4">
-                          Please transfer the exact amount and include the
-                          content above
-                        </p>
+                          {/* Bank Account Info */}
+                          <div className="w-full bg-white rounded-lg p-4 border border-blue-200">
+                            <h4 className="font-bold text-gray-900 mb-3 text-center">
+                              Bank Account Information
+                            </h4>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Bank:</span>
+                                <span className="font-semibold text-gray-900">
+                                  Vietcombank
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">
+                                  Account Number:
+                                </span>
+                                <span className="font-semibold text-gray-900">
+                                  1234567890
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">
+                                  Account Name:
+                                </span>
+                                <span className="font-semibold text-gray-900">
+                                  LUONG PHAM MINH
+                                </span>
+                              </div>
+                              <div className="flex justify-between border-t pt-2 mt-2">
+                                <span className="text-gray-600">Amount:</span>
+                                <span className="font-bold text-blue-600 text-lg">
+                                  {(
+                                    checkoutAmount +
+                                    checkoutDeposit +
+                                    shippingFee +
+                                    tax
+                                  ).toLocaleString("vi-VN")}
+                                  đ
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Content:</span>
+                                <span className="font-semibold text-gray-900">
+                                  HUBSPORT {user?.id || "ORDER"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <p className="text-xs text-gray-600 text-center mt-4">
+                            Please transfer the exact amount and include the
+                            content above
+                          </p>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Bill Upload Section */}
-                    <div className="mt-6 bg-amber-50 border-2 border-amber-200 rounded-xl p-6">
-                      <h3 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
-                        <svg
-                          className="w-5 h-5 text-amber-600"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          />
-                        </svg>
-                        Upload Payment Bill
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-4">
-                        Please upload a screenshot or photo of your bank transfer receipt/bill to complete the verification process. Admin will review and approve your payment.
-                      </p>
-
-                      {/* File Upload Input */}
-                      <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Bill Image <span className="text-red-500">*</span>
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileUpload}
-                            className="hidden"
-                            id="billImageInput"
-                          />
-                          <label
-                            htmlFor="billImageInput"
-                            className="flex items-center justify-center w-full px-4 py-2 border-2 border-dashed border-amber-300 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors"
+                      {/* Bill Upload Section */}
+                      <div className="mt-6 bg-amber-50 border-2 border-amber-200 rounded-xl p-6">
+                        <h3 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
+                          <svg
+                            className="w-5 h-5 text-amber-600"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
                           >
-                            <div className="text-center">
-                              {paymentProofData.billImageUrl ? (
-                                <div>
-                                  <p className="text-sm font-semibold text-green-600">✓ Bill uploaded</p>
-                                  <p className="text-xs text-gray-500">Click to change</p>
-                                </div>
-                              ) : (
-                                <div>
-                                  <svg
-                                    className="mx-auto h-8 w-8 text-gray-400"
-                                    stroke="currentColor"
-                                    fill="none"
-                                    viewBox="0 0 48 48"
-                                  >
-                                    <path
-                                      d="M28 8H12a4 4 0 00-4 4v24a4 4 0 004 4h24a4 4 0 004-4V20"
-                                      strokeWidth={2}
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                    <path
-                                      d="M24 4v16M16 12h16"
-                                      strokeWidth={2}
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                  </svg>
-                                  <p className="text-sm text-gray-600">Click to upload or drag and drop</p>
-                                  <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
-                                </div>
-                              )}
-                            </label>
-                          </label>
-                        </div>
-                      </div>
-
-                      {/* Bill Preview */}
-                      {paymentProofData.billImageUrl && (
-                        <div className="mb-4 p-4 bg-white rounded-lg border border-amber-200">
-                          <p className="text-sm font-semibold text-gray-700 mb-2">Bill Preview:</p>
-                          <img
-                            src={paymentProofData.billImageUrl}
-                            alt="Bill preview"
-                            className="max-w-xs max-h-32 rounded object-cover"
-                          />
-                        </div>
-                      )}
-
-                      {/* Optional Bank Details */}
-                      <div className="space-y-3 mt-4 pt-4 border-t border-amber-200">
-                        <p className="text-xs text-gray-500">Optional: Add bank details for reference</p>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-700 mb-1">
-                              Bank Name
-                            </label>
-                            <input
-                              type="text"
-                              name="bankName"
-                              value={paymentProofData.bankName}
-                              onChange={handlePaymentProofChange}
-                              className="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-                              placeholder="e.g., Vietcombank"
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                             />
+                          </svg>
+                          Upload Payment Bill
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                          Please upload a screenshot or photo of your bank
+                          transfer receipt/bill to complete the verification
+                          process. Admin will review and approve your payment.
+                        </p>
+
+                        {/* File Upload Input */}
+                        <div className="mb-4">
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Bill Image <span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleFileUpload}
+                              className="hidden"
+                              id="billImageInput"
+                            />
+                            <label
+                              htmlFor="billImageInput"
+                              className="flex items-center justify-center w-full px-4 py-2 border-2 border-dashed border-amber-300 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors"
+                            >
+                              <div className="text-center">
+                                {paymentProofData.billImageUrl ? (
+                                  <div>
+                                    <p className="text-sm font-semibold text-green-600">
+                                      ✓ Bill uploaded
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      Click to change
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <div>
+                                    <svg
+                                      className="mx-auto h-8 w-8 text-gray-400"
+                                      stroke="currentColor"
+                                      fill="none"
+                                      viewBox="0 0 48 48"
+                                    >
+                                      <path
+                                        d="M28 8H12a4 4 0 00-4 4v24a4 4 0 004 4h24a4 4 0 004-4V20"
+                                        strokeWidth={2}
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                      <path
+                                        d="M24 4v16M16 12h16"
+                                        strokeWidth={2}
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
+                                    <p className="text-sm text-gray-600">
+                                      Click to upload or drag and drop
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      PNG, JPG, GIF up to 5MB
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Bill Preview */}
+                        {paymentProofData.billImageUrl && (
+                          <div className="mb-4 p-4 bg-white rounded-lg border border-amber-200">
+                            <p className="text-sm font-semibold text-gray-700 mb-2">
+                              Bill Preview:
+                            </p>
+                            <img
+                              src={paymentProofData.billImageUrl}
+                              alt="Bill preview"
+                              className="max-w-xs max-h-32 rounded object-cover"
+                            />
+                          </div>
+                        )}
+
+                        {/* Optional Bank Details */}
+                        <div className="space-y-3 mt-4 pt-4 border-t border-amber-200">
+                          <p className="text-xs text-gray-500">
+                            Optional: Add bank details for reference
+                          </p>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                Bank Name
+                              </label>
+                              <input
+                                type="text"
+                                name="bankName"
+                                value={paymentProofData.bankName}
+                                onChange={handlePaymentProofChange}
+                                className="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                placeholder="e.g., Vietcombank"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                Transaction ID
+                              </label>
+                              <input
+                                type="text"
+                                name="transactionId"
+                                value={paymentProofData.transactionId}
+                                onChange={handlePaymentProofChange}
+                                className="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                placeholder="e.g., TXN123456"
+                              />
+                            </div>
                           </div>
                           <div>
                             <label className="block text-xs font-semibold text-gray-700 mb-1">
-                              Transaction ID
+                              Account Number (Last 4 digits)
                             </label>
                             <input
                               type="text"
-                              name="transactionId"
-                              value={paymentProofData.transactionId}
+                              name="accountNumber"
+                              value={paymentProofData.accountNumber}
                               onChange={handlePaymentProofChange}
+                              maxLength="4"
                               className="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-                              placeholder="e.g., TXN123456"
+                              placeholder="e.g., 6890"
                             />
                           </div>
                         </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-1">
-                            Account Number (Last 4 digits)
-                          </label>
-                          <input
-                            type="text"
-                            name="accountNumber"
-                            value={paymentProofData.accountNumber}
-                            onChange={handlePaymentProofChange}
-                            maxLength="4"
-                            className="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-                            placeholder="e.g., 6890"
-                          />
-                        </div>
                       </div>
-                    </div>
+                    </>
                   )}
 
                   {/* Wallet Insufficient Warning */}
                   {isWalletInsufficient && (
                     <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
-                      Insufficient wallet balance. Please choose another payment method or top up your wallet.
+                      Insufficient wallet balance. Please choose another payment
+                      method or top up your wallet.
                     </div>
                   )}
                 </div>
               )}
-
 
               {/* Step 3: Review Order */}
               {currentStep === 3 && (
@@ -1026,7 +1050,8 @@ const CheckoutPage = () => {
                               </p>
                               {item.depositFee > 0 && (
                                 <p className="text-xs text-gray-500 mt-1">
-                                  Deposit: {item.depositFee.toLocaleString("vi-VN")}đ
+                                  Deposit:{" "}
+                                  {item.depositFee.toLocaleString("vi-VN")}đ
                                 </p>
                               )}
                             </div>

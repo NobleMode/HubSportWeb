@@ -12,7 +12,7 @@ class ProductController {
    */
   async getAllProducts(req, res, next) {
     try {
-      const { type, category, isActive, isRecommended, search, minPrice, maxPrice } =
+      const { type, category, isActive, isRecommended, search, minPrice, maxPrice, shopId } =
         req.query;
 
       const products = await productService.getAllProducts({
@@ -23,6 +23,7 @@ class ProductController {
         search,
         minPrice,
         maxPrice,
+        shopId,
       });
 
       res.status(200).json({
@@ -142,6 +143,23 @@ class ProductController {
       res.status(200).json({
         success: true,
         message: "Product deleted successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get all categories
+   * GET /api/products/categories
+   */
+  async getCategories(req, res, next) {
+    try {
+      const categories = await productService.getCategories();
+
+      res.status(200).json({
+        success: true,
+        data: categories,
       });
     } catch (error) {
       next(error);

@@ -4,6 +4,7 @@ import { useGetShopByIdQuery } from "../services/shopApi";
 import { useGetProductsQuery } from "../services/productApi";
 import { motion } from "framer-motion";
 import { getImageUrl } from "../utils/imageUtils";
+import ShopLocationMap from "../components/shop/ShopLocationMap";
 
 const ShopDetailsPage = () => {
   const { id } = useParams();
@@ -109,8 +110,16 @@ const ShopDetailsPage = () => {
                   {new Date(shop.createdAt).toLocaleDateString("vi-VN")}
                 </div>
               </div>
+
+              {shop.address && (
+                <div className="mt-4 flex items-start text-sm text-gray-600 max-w-2xl">
+                  <span className="text-amber-500 mr-2 shrink-0">📍</span>
+                  <span>{shop.address}</span>
+                </div>
+              )}
             </div>
-            <div className="mt-6 md:mt-0 flex gap-3 w-full md:w-auto">
+            
+            <div className="mt-6 md:mt-0 flex flex-col md:flex-row gap-3 w-full md:w-auto">
               <button className="flex-1 md:flex-none px-8 py-3 bg-gray-900 text-white rounded-2xl font-bold hover:bg-black transition-all shadow-lg hover:shadow-xl">
                 Theo Dõi
               </button>
@@ -121,6 +130,8 @@ const ShopDetailsPage = () => {
           </div>
         </div>
       </div>
+
+      <ShopLocationMap shop={shop} />
 
       {/* Products Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">

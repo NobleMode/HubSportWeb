@@ -185,7 +185,9 @@ async function main() {
       email: "prosport@gmail.com",
       ownerName: "Tran Van Hung",
       phone: "0901234567",
-      address: "123 Le Loi, District 1, Ho Chi Minh",
+      address: "Hoa Lac Hi-tech Park, km 29, Đại lộ, Thăng Long, Hà Nội",
+      latitude: 21.013200 + (Math.random() - 0.5) * 0.01,
+      longitude: 105.526200 + (Math.random() - 0.5) * 0.01,
       description:
         "Premium sports equipment for professionals and enthusiasts. We offer both sales and rentals.",
       avatarUrl:
@@ -198,7 +200,9 @@ async function main() {
       email: "tennisworld@gmail.com",
       ownerName: "Nguyen Thi Mai",
       phone: "0902345678",
-      address: "456 Nguyen Hue, District 3, Ho Chi Minh",
+      address: "Hoa Lac Hi-tech Park, km 29, Đại lộ, Thăng Long, Hà Nội",
+      latitude: 21.013200 + (Math.random() - 0.5) * 0.01,
+      longitude: 105.526200 + (Math.random() - 0.5) * 0.01,
       description:
         "Your one-stop shop for all tennis gear. Rackets, balls, apparel and more!",
       avatarUrl:
@@ -211,7 +215,9 @@ async function main() {
       email: "footballgalaxy@gmail.com",
       ownerName: "Le Minh Duc",
       phone: "0903456789",
-      address: "789 Tran Hung Dao, Hai Chau, Da Nang",
+      address: "Hoa Lac Hi-tech Park, km 29, Đại lộ, Thăng Long, Hà Nội",
+      latitude: 21.013200 + (Math.random() - 0.5) * 0.01,
+      longitude: 105.526200 + (Math.random() - 0.5) * 0.01,
       description:
         "Everything for football lovers. From boots to jerseys, balls to accessories.",
       avatarUrl:
@@ -224,7 +230,9 @@ async function main() {
       email: "gympro@gmail.com",
       ownerName: "Pham Quoc Anh",
       phone: "0904567890",
-      address: "321 Bach Dang, Hoan Kiem, Hanoi",
+      address: "Hoa Lac Hi-tech Park, km 29, Đại lộ, Thăng Long, Hà Nội",
+      latitude: 21.013200 + (Math.random() - 0.5) * 0.01,
+      longitude: 105.526200 + (Math.random() - 0.5) * 0.01,
       description:
         "Professional gym equipment for home and commercial use. Quality guaranteed!",
       avatarUrl:
@@ -237,7 +245,9 @@ async function main() {
       email: "cyclinghub@gmail.com",
       ownerName: "Hoang Van Tuan",
       phone: "0905678901",
-      address: "555 Hai Ba Trung, District 1, Ho Chi Minh",
+      address: "Hoa Lac Hi-tech Park, km 29, Đại lộ, Thăng Long, Hà Nội",
+      latitude: 21.013200 + (Math.random() - 0.5) * 0.01,
+      longitude: 105.526200 + (Math.random() - 0.5) * 0.01,
       description:
         "Premium bikes and cycling accessories. Rent or buy your dream bike today!",
       avatarUrl:
@@ -250,7 +260,9 @@ async function main() {
       email: "yogawellness@gmail.com",
       ownerName: "Vu Thi Lan",
       phone: "0906789012",
-      address: "888 Kim Ma, Ba Dinh, Hanoi",
+      address: "Hoa Lac Hi-tech Park, km 29, Đại lộ, Thăng Long, Hà Nội",
+      latitude: 21.013200 + (Math.random() - 0.5) * 0.01,
+      longitude: 105.526200 + (Math.random() - 0.5) * 0.01,
       description:
         "Yoga mats, blocks, straps and wellness products for your mindful journey.",
       avatarUrl:
@@ -263,7 +275,9 @@ async function main() {
       email: "badmintonpro@gmail.com",
       ownerName: "Do Thanh Son",
       phone: "0907890123",
-      address: "999 Phan Chu Trinh, Hue",
+      address: "Hoa Lac Hi-tech Park, km 29, Đại lộ, Thăng Long, Hà Nội",
+      latitude: 21.013200 + (Math.random() - 0.5) * 0.01,
+      longitude: 105.526200 + (Math.random() - 0.5) * 0.01,
       description:
         "Top-quality badminton rackets, shuttlecocks, and accessories from leading brands.",
       avatarUrl:
@@ -276,7 +290,9 @@ async function main() {
       email: "swimminggear@gmail.com",
       ownerName: "Bui Thi Hoa",
       phone: "0908901234",
-      address: "777 Tran Phu, Nha Trang",
+      address: "Hoa Lac Hi-tech Park, km 29, Đại lộ, Thăng Long, Hà Nội",
+      latitude: 21.013200 + (Math.random() - 0.5) * 0.01,
+      longitude: 105.526200 + (Math.random() - 0.5) * 0.01,
       description:
         "Complete swimming gear including goggles, caps, swimsuits and pool accessories.",
       avatarUrl:
@@ -289,7 +305,9 @@ async function main() {
       email: "golfparadise@gmail.com",
       ownerName: "Nguyen Hoang Long",
       phone: "0909012345",
-      address: "111 Le Van Luong, District 7, Ho Chi Minh",
+      address: "Hoa Lac Hi-tech Park, km 29, Đại lộ, Thăng Long, Hà Nội",
+      latitude: 21.013200 + (Math.random() - 0.5) * 0.01,
+      longitude: 105.526200 + (Math.random() - 0.5) * 0.01,
       description:
         "Premium golf clubs, balls, bags and apparel for the discerning golfer.",
       avatarUrl:
@@ -302,7 +320,9 @@ async function main() {
       email: "runningoutdoor@gmail.com",
       ownerName: "Tran Thi Ngoc",
       phone: "0900123456",
-      address: "222 Nguyen Van Linh, Can Tho",
+      address: "Hoa Lac Hi-tech Park, km 29, Đại lộ, Thăng Long, Hà Nội",
+      latitude: 21.013200 + (Math.random() - 0.5) * 0.01,
+      longitude: 105.526200 + (Math.random() - 0.5) * 0.01,
       description:
         "Running shoes, outdoor gear, camping equipment and adventure accessories.",
       avatarUrl:

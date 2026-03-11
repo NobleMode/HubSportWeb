@@ -6,6 +6,7 @@ import {
 } from "../services/shopApi";
 import { useToast } from "../context/ToastContext";
 import { motion } from "framer-motion";
+import LocationPicker from "../components/common/LocationPicker";
 
 const SellerRegistrationPage = () => {
   const [formData, setFormData] = useState({
@@ -143,6 +144,33 @@ const SellerRegistrationPage = () => {
                   placeholder="https://..."
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Vị trí cửa hàng <span className="text-red-500">*</span>
+              </label>
+              <LocationPicker 
+                initialLocation={
+                  formData.latitude && formData.longitude 
+                    ? { lat: formData.latitude, lng: formData.longitude } 
+                    : null
+                }
+                onLocationSelect={({ lat, lng, address }) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    latitude: lat,
+                    longitude: lng,
+                    address: address || prev.address
+                  }));
+                }}
+              />
+              {formData.address && (
+                <div className="mt-2 text-sm text-gray-400 flex items-start gap-2">
+                  <span className="text-electricBlue">📍</span>
+                  <span>{formData.address}</span>
+                </div>
+              )}
             </div>
 
             <div className="pt-4">

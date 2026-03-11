@@ -79,7 +79,16 @@ const OrderManagement = () => {
                                     {(order.totalAmount).toLocaleString('vi-VN')} VND
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {order.totalDeposit > 0 ? `${order.totalDeposit.toLocaleString('vi-VN')} VND` : '-'}
+                                    {(() => {
+                                        const items = order.orderItems || order.shopOrders?.flatMap(so => so.orderItems) || [];
+                                        const depositValue = items.reduce((sum, item) => {
+                                            if (item.isRental && item.product?.depositFee) {
+                                                return sum + (item.product.depositFee * item.quantity);
+                                            }
+                                            return sum;
+                                        }, 0);
+                                        return depositValue > 0 ? `${depositValue.toLocaleString('vi-VN')} VND` : '-';
+                                    })()}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${

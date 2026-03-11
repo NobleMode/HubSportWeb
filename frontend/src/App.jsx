@@ -3,11 +3,9 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
-  Navigate,
 } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  selectIsAuthenticated,
   selectCurrentUser,
   setCredentials,
   setLoading,
@@ -62,7 +60,6 @@ const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
  */
 function App() {
   const dispatch = useDispatch();
-  const isAuthenticated = useSelector(selectIsAuthenticated);
   const currentUser = useSelector(selectCurrentUser);
   const loading = useSelector((state) => state.auth.loading);
   const token = useSelector((state) => state.auth.token);
@@ -76,7 +73,6 @@ function App() {
     data: userProfile,
     isLoading: isProfileLoading,
     isSuccess: isProfileSuccess,
-    isError: isProfileError,
   } = useGetProfileQuery(undefined, {
     skip: !token, // Skip if no token
   });
@@ -114,14 +110,14 @@ function App() {
     };
 
     tryAutoRefresh();
-  }, []); // Only run once on mount
+  }, [token, currentUser, refreshToken, dispatch]); // Added missing dependencies
 
   // Update user profile in store when profile query succeeds
   useEffect(() => {
     if (isProfileSuccess && userProfile && userProfile.data) {
-      dispatch(restoreSession(userProfile.data));
+      dispatch(restoreSession({ user: userProfile.data, token }));
     }
-  }, [isProfileSuccess, userProfile, dispatch]);
+  }, [isProfileSuccess, userProfile, dispatch, token]);
 
   if (loading) {
     return (

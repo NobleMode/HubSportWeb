@@ -81,7 +81,17 @@ const DashboardOverview = ({ setActiveTab }) => {
     const { totalRevenue, totalDeposits } = ordersData?.data?.reduce((acc, order) => {
         if (order.status !== 'CANCELLED') {
             acc.totalRevenue += order.totalAmount || 0;
-            acc.totalDeposits += order.totalDeposit || 0;
+            
+            // Calculate total deposits from nested order items
+            const items = order.orderItems || order.shopOrders?.flatMap(so => so.orderItems) || [];
+            const orderDeposit = items.reduce((sum, item) => {
+                if (item.isRental && item.product?.depositFee) {
+                    return sum + (item.product.depositFee * item.quantity);
+                }
+                return sum;
+            }, 0);
+            
+            acc.totalDeposits += orderDeposit;
         }
         return acc;
     }, { totalRevenue: 0, totalDeposits: 0 }) || { totalRevenue: 0, totalDeposits: 0 };

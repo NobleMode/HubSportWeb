@@ -111,16 +111,16 @@ model User {
   updatedAt  DateTime  @updatedAt
 
   // Relations
-  orders                   Order[]
-  expertProfile            ExpertProfile?
-  bookings                 Booking[]
-  reviews                  Review[]
-  shipments                Shipment[]     @relation("ShipperShipments")
-  refreshTokens            RefreshToken[]
-  shop                     Shop?
-  transactions             Transaction[]
-  paymentProofsUploaded    PaymentProof[] @relation("PaymentProofUploadedBy")
-  paymentProofsApproved    PaymentProof[] @relation("PaymentProofApprovedBy")
+  orders                Order[]
+  expertProfile         ExpertProfile?
+  bookings              Booking[]
+  reviews               Review[]
+  shipments             Shipment[]     @relation("ShipperShipments")
+  refreshTokens         RefreshToken[]
+  shop                  Shop?
+  transactions          Transaction[]
+  paymentProofsUploaded PaymentProof[] @relation("PaymentProofUploadedBy")
+  paymentProofsApproved PaymentProof[] @relation("PaymentProofApprovedBy")
 
   @@map("users")
 }
@@ -332,22 +332,22 @@ model Booking {
 }
 
 model PaymentProof {
-  id             String              @id @default(uuid())
-  orderId        String              @unique
-  order          Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  billImageUrl   String
-  bankName       String?
-  accountNumber  String?
-  transactionId  String?
-  uploadedBy     String
-  uploadedByUser User                @relation("PaymentProofUploadedBy", fields: [uploadedBy], references: [id], onDelete: Cascade)
-  status         PaymentProofStatus  @default(PENDING)
-  approvedBy     String?
-  approvedByUser User?               @relation("PaymentProofApprovedBy", fields: [approvedBy], references: [id], onDelete: SetNull)
-  approvedAt     DateTime?
+  id              String             @id @default(uuid())
+  orderId         String             @unique
+  order           Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  billImageUrl    String
+  bankName        String?
+  accountNumber   String?
+  transactionId   String?
+  uploadedBy      String
+  uploadedByUser  User               @relation("PaymentProofUploadedBy", fields: [uploadedBy], references: [id], onDelete: Cascade)
+  status          PaymentProofStatus @default(PENDING)
+  approvedBy      String?
+  approvedByUser  User?              @relation("PaymentProofApprovedBy", fields: [approvedBy], references: [id], onDelete: SetNull)
+  approvedAt      DateTime?
   rejectionReason String?
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
 
   @@map("payment_proofs")
 }
@@ -403,6 +403,9 @@ model Shop {
   description    String?
   avatarUrl      String?
   coverUrl       String?
+  address        String?
+  latitude       Float?
+  longitude      Float?
   isActive       Boolean  @default(true)
   commissionRate Float    @default(5.0)
   balance        Float    @default(0)
@@ -410,8 +413,8 @@ model Shop {
   updatedAt      DateTime @updatedAt
 
   // Relations
-  products   Product[]
-  shopOrders ShopOrder[]
+  products    Product[]
+  shopOrders  ShopOrder[]
   withdrawals Withdrawal[]
 
   @@map("shops")

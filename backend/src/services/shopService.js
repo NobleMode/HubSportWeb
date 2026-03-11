@@ -9,7 +9,7 @@ class ShopService {
    * Create a new shop
    */
   async createShop(userId, shopData) {
-    const { name, description, avatarUrl, coverUrl } = shopData;
+    const { name, description, avatarUrl, coverUrl, address, latitude, longitude } = shopData;
 
     return await prisma.$transaction(async (tx) => {
       // 1. Create the shop
@@ -20,6 +20,9 @@ class ShopService {
           description,
           avatarUrl,
           coverUrl,
+          address,
+          latitude,
+          longitude,
           isActive: true,
         },
       });

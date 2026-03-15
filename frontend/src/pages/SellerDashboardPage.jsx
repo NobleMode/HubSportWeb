@@ -4,7 +4,6 @@ import {
   useGetMyShopOrdersQuery,
   useSettleShopOrderMutation,
 } from "../services/shopApi";
-import { motion } from "framer-motion";
 import AddProductModal from "../components/shop/AddProductModal";
 import WithdrawModal from "../components/shop/WithdrawModal";
 import ShopSettingsModal from "../components/shop/ShopSettingsModal";
@@ -141,7 +140,7 @@ const SellerDashboardPage = () => {
               Đơn hàng hoàn tất
             </p>
             <p className="text-4xl font-black text-limeGreen mt-2">
-              {orders?.filter((o) => o.status === "DELIVERED").length || 0}
+              {orders?.filter((o) => o?.status === "DELIVERED")?.length || 0}
             </p>
           </div>
           <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
@@ -149,9 +148,9 @@ const SellerDashboardPage = () => {
               Doanh thu tạm tính
             </p>
             <p className="text-4xl font-black text-electricBlue mt-2">
-              {orders
-                ?.reduce((sum, o) => sum + o.sellerEarning, 0)
-                .toLocaleString("vi-VN")}
+              {(
+                orders?.reduce((sum, o) => sum + (o?.sellerEarning || 0), 0) || 0
+              ).toLocaleString("vi-VN")}
               đ
             </p>
           </div>
@@ -196,20 +195,20 @@ const SellerDashboardPage = () => {
                     </td>
                     <td className="px-8 py-6">
                       <p className="font-semibold text-gray-900">
-                        {order.order.user.name || "N/A"}
+                        {order?.order?.user?.name || "N/A"}
                       </p>
                       <p className="text-xs text-gray-400">
-                        {order.order.user.phone}
+                        {order?.order?.user?.phone || "N/A"}
                       </p>
                     </td>
                     <td className="px-8 py-6">
                       <div className="flex flex-col gap-1">
-                        {order.orderItems.map((item) => (
+                        {order?.orderItems?.map((item) => (
                           <span
                             key={item.id}
                             className="text-sm text-gray-600 truncate max-w-xs"
                           >
-                            • {item.product.name} (x{item.quantity})
+                            • {item?.product?.name || "Unknown Product"} (x{item?.quantity})
                           </span>
                         ))}
                       </div>

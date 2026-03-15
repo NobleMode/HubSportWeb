@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useUpdateMyShopMutation } from "../../services/shopApi";
+import { useUpdateShopMutation } from "../../services/shopApi";
 import { useToast } from "../../context/ToastContext";
 import LocationPicker from "../common/LocationPicker";
 
 const ShopSettingsModal = ({ isOpen, onClose, shopData }) => {
-  const [updateMyShop, { isLoading }] = useUpdateMyShopMutation();
+  const [updateShop, { isLoading }] = useUpdateShopMutation();
   const { showToast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -48,7 +48,7 @@ const ShopSettingsModal = ({ isOpen, onClose, shopData }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await updateMyShop(formData).unwrap();
+      await updateShop(formData).unwrap();
       showToast("Cập nhật thông tin cửa hàng thành công!", "success");
       onClose();
     } catch (err) {
